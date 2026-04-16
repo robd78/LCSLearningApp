@@ -1,0 +1,2184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f1823">
+<title>LCSP Reporting Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f1823;
+  --bg-2:#141f2d;
+  --surface:#1a2636;
+  --surface-2:#213047;
+  --line:#2a3a55;
+  --line-soft:#223148;
+  --ink:#e8edf5;
+  --ink-dim:#a6b3c7;
+  --ink-faint:#6b7a94;
+  --accent:#e8b84b;
+  --accent-soft:#f5d888;
+  --good:#6ec79a;
+  --warn:#e89a5c;
+  --bad:#e07b7b;
+  --urgent:#d65555;
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'Inter Tight',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;min-height:100%}
+body{line-height:1.5;padding-bottom:env(safe-area-inset-bottom)}
+a{color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+
+/* ===== Layout ===== */
+.app{max-width:960px;margin:0 auto;padding:24px 20px 80px}
+@media(min-width:720px){.app{padding:40px 32px 80px}}
+
+header.masthead{border-bottom:1px solid var(--line-soft);padding-bottom:22px;margin-bottom:24px}
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+h1.title{font-family:var(--serif);font-weight:500;font-size:clamp(30px,6vw,46px);letter-spacing:-0.02em;line-height:1.05}
+h1.title em{font-style:italic;color:var(--accent-soft);font-weight:400}
+.subtitle{color:var(--ink-dim);font-size:14px;margin-top:10px;max-width:60ch}
+
+/* ===== Nav ===== */
+nav.tabs{display:flex;gap:2px;margin:22px 0 28px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:10px;padding:4px;flex-wrap:wrap}
+nav.tabs button{flex:1;min-width:110px;padding:10px 14px;font-size:13px;font-weight:500;color:var(--ink-dim);border-radius:7px;letter-spacing:0.01em;transition:color .15s,background .15s;white-space:nowrap}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button.active{background:var(--surface-2);color:var(--ink)}
+nav.tabs button.active .dot{color:var(--accent)}
+nav.tabs button .dot{display:inline-block;margin-right:6px;font-family:var(--mono);font-size:10px;color:var(--ink-faint)}
+
+/* ===== Sections ===== */
+section{display:none}
+section.active{display:block;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+h2{font-family:var(--serif);font-weight:500;font-size:26px;letter-spacing:-0.01em;margin-bottom:8px}
+h3{font-family:var(--serif);font-weight:500;font-size:19px;letter-spacing:-0.005em;margin:22px 0 10px}
+h4{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-dim);margin:18px 0 8px}
+p{color:var(--ink-dim);font-size:14.5px;margin-bottom:12px}
+p strong{color:var(--ink);font-weight:600}
+
+/* ===== Cards ===== */
+.card{background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:20px;margin-bottom:16px}
+.card-accent{border-left:3px solid var(--accent)}
+.card h3:first-child,.card h2:first-child{margin-top:0}
+
+/* Decision-tree node (nodule explorer) */
+.node{background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:22px;margin-bottom:14px}
+.node-q{font-family:var(--serif);font-size:20px;font-weight:500;margin-bottom:6px;letter-spacing:-0.005em}
+.node-hint{color:var(--ink-faint);font-size:13px;margin-bottom:16px}
+.options{display:flex;flex-direction:column;gap:8px}
+.opt{display:block;width:100%;text-align:left;padding:13px 16px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:9px;font-size:14px;color:var(--ink);transition:all .15s;line-height:1.4}
+.opt:hover{border-color:var(--accent);background:var(--surface-2);transform:translateX(2px)}
+.opt .opt-main{display:block;font-weight:500}
+.opt .opt-sub{display:block;font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);margin-top:3px}
+
+/* Outcome card */
+.outcome{border-radius:12px;padding:22px;margin-bottom:14px;border:1px solid var(--line-soft);background:var(--surface)}
+.outcome-label{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:10px;font-weight:500}
+.outcome h3{font-family:var(--serif);font-size:22px;font-weight:500;margin:0 0 10px;letter-spacing:-0.01em;color:var(--ink)}
+.outcome p{color:var(--ink-dim);margin-bottom:8px}
+.outcome ul{margin:10px 0 10px 18px;color:var(--ink-dim);font-size:14px}
+.outcome ul li{margin-bottom:5px}
+.outcome.refer{border-color:var(--urgent);background:linear-gradient(180deg,rgba(214,85,85,0.08),var(--surface))}
+.outcome.refer .outcome-label{color:var(--urgent)}
+.outcome.surveillance{border-color:var(--accent);background:linear-gradient(180deg,rgba(232,184,75,0.06),var(--surface))}
+.outcome.surveillance .outcome-label{color:var(--accent)}
+.outcome.discharge{border-color:var(--good);background:linear-gradient(180deg,rgba(110,199,154,0.06),var(--surface))}
+.outcome.discharge .outcome-label{color:var(--good)}
+
+.path-trail{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-bottom:14px;display:flex;flex-wrap:wrap;gap:4px 8px;padding:10px 12px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:8px}
+.path-trail span.crumb{color:var(--ink-dim)}
+.path-trail span.sep{color:var(--ink-faint)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;font-size:13px;font-weight:500;color:var(--ink);transition:all .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);color:#1a1304;border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent-soft);color:#1a1304}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+
+/* ===== IF table ===== */
+.if-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.if-filters button{padding:7px 13px;font-size:12px;font-weight:500;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:20px;color:var(--ink-dim);transition:all .15s}
+.if-filters button:hover{color:var(--ink);border-color:var(--line)}
+.if-filters button.active{background:var(--accent);color:#1a1304;border-color:var(--accent)}
+
+.if-search{width:100%;padding:12px 16px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:9px;color:var(--ink);font-size:14px;font-family:inherit;margin-bottom:14px;transition:border-color .15s}
+.if-search:focus{outline:none;border-color:var(--accent)}
+.if-search::placeholder{color:var(--ink-faint)}
+
+.if-item{background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;margin-bottom:10px;overflow:hidden;transition:border-color .15s}
+.if-item:hover{border-color:var(--line)}
+.if-head{width:100%;padding:16px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left}
+.if-head-main{flex:1;min-width:0}
+.if-name{font-family:var(--serif);font-size:17px;font-weight:500;margin-bottom:4px;letter-spacing:-0.005em}
+.if-meta{display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint)}
+.if-meta .rel-good{color:var(--good)}
+.if-meta .rel-mod{color:var(--warn)}
+.if-meta .rel-poor{color:var(--bad)}
+.if-meta .cat-chip{color:var(--accent)}
+.if-chev{color:var(--ink-faint);font-family:var(--mono);font-size:14px;flex-shrink:0;transition:transform .2s}
+.if-item.open .if-chev{transform:rotate(90deg);color:var(--accent)}
+.if-body{display:none;padding:0 18px 18px;border-top:1px solid var(--line-soft)}
+.if-item.open .if-body{display:block;padding-top:16px;margin-top:0}
+.if-body h5{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-faint);margin:12px 0 6px}
+.if-body h5:first-child{margin-top:0}
+.if-body p,.if-body li{color:var(--ink-dim);font-size:13.5px;line-height:1.55}
+.if-body ul{margin-left:18px}
+.if-body li{margin-bottom:4px}
+
+/* Threshold table inside IF */
+.thresh-row{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;padding:8px 0;border-bottom:1px dashed var(--line-soft);font-size:13px}
+.thresh-row:last-child{border:none}
+.thresh-size{font-family:var(--mono);color:var(--accent-soft);font-size:12px;white-space:nowrap}
+.thresh-act{color:var(--ink-dim)}
+
+/* ===== Quiz ===== */
+.quiz-stage{background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:24px 22px;margin-bottom:16px}
+.quiz-meta{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:16px}
+.quiz-meta .q-score{color:var(--accent)}
+.quiz-scenario{font-family:var(--serif);font-size:17px;line-height:1.45;color:var(--ink);margin-bottom:8px;font-weight:400}
+.quiz-ask{font-size:14.5px;color:var(--ink-dim);margin-bottom:18px}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:13px 16px;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:9px;text-align:left;font-size:14px;line-height:1.4;color:var(--ink);transition:all .15s;position:relative}
+.quiz-opt:hover:not(:disabled){border-color:var(--accent);background:var(--surface-2)}
+.quiz-opt:disabled{cursor:default}
+.quiz-opt.correct{border-color:var(--good);background:rgba(110,199,154,0.08)}
+.quiz-opt.correct::after{content:"✓";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--good);font-weight:700}
+.quiz-opt.wrong{border-color:var(--bad);background:rgba(224,123,123,0.08)}
+.quiz-opt.wrong::after{content:"✕";position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--bad);font-weight:700}
+.quiz-opt.reveal-correct{border-color:var(--good)}
+.quiz-feedback{margin-top:18px;padding:15px 16px;border-radius:9px;background:var(--bg-2);border-left:3px solid var(--accent);font-size:13.5px;line-height:1.55;color:var(--ink-dim)}
+.quiz-feedback strong{color:var(--ink);display:block;margin-bottom:4px;font-size:12px;text-transform:uppercase;letter-spacing:0.1em}
+.quiz-nav{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
+
+.quiz-summary{text-align:center;padding:32px 20px}
+.quiz-summary .big-score{font-family:var(--serif);font-size:64px;font-weight:400;letter-spacing:-0.03em;color:var(--accent);line-height:1}
+.quiz-summary .big-score small{font-size:24px;color:var(--ink-faint)}
+.quiz-summary p{margin-top:16px;max-width:40ch;margin-left:auto;margin-right:auto}
+
+/* ===== Reference ===== */
+.ref-grid{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:560px){.ref-grid{grid-template-columns:1fr 1fr}}
+.ref-tile{padding:14px 16px;background:var(--surface);border:1px solid var(--line-soft);border-radius:9px}
+.ref-tile .k{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;color:var(--accent-soft);margin-bottom:5px}
+.ref-tile .v{font-size:13.5px;color:var(--ink-dim);line-height:1.5}
+.ref-tile .v strong{color:var(--ink)}
+
+/* Footer */
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line-soft);color:var(--ink-faint);font-size:11.5px;line-height:1.6}
+footer p{color:var(--ink-faint);font-size:11.5px}
+
+.pill{display:inline-block;padding:2px 9px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;border-radius:20px;border:1px solid currentColor;vertical-align:middle}
+.pill-good{color:var(--good)}
+.pill-warn{color:var(--warn)}
+.pill-bad{color:var(--bad)}
+.pill-acc{color:var(--accent)}
+
+.inline-code{font-family:var(--mono);font-size:12.5px;background:var(--bg-2);padding:1px 6px;border-radius:4px;color:var(--accent-soft)}
+
+hr.soft{border:none;height:1px;background:var(--line-soft);margin:18px 0}
+
+/* ===== Flashcards ===== */
+.fc-filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.fc-filters button{padding:7px 13px;font-size:12px;font-weight:500;background:var(--bg-2);border:1px solid var(--line-soft);border-radius:20px;color:var(--ink-dim);transition:all .15s}
+.fc-filters button:hover{color:var(--ink);border-color:var(--line)}
+.fc-filters button.active{background:var(--accent);color:#1a1304;border-color:var(--accent)}
+
+.fc-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+.fc-progress{font-family:var(--mono);font-size:11.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-faint)}
+.fc-progress #fc-counter{color:var(--accent)}
+.fc-bar-actions{display:flex;gap:8px}
+.btn-sm{padding:6px 11px;font-size:11.5px;letter-spacing:0.02em}
+
+.fc-card{
+  perspective:1600px;
+  width:100%;
+  min-height:340px;
+  margin-bottom:16px;
+  cursor:pointer;
+  position:relative;
+}
+.fc-card-inner{
+  position:relative;
+  width:100%;
+  min-height:340px;
+  transition:transform .6s cubic-bezier(.5,.05,.25,1);
+  transform-style:preserve-3d;
+}
+.fc-card.flipped .fc-card-inner{transform:rotateY(180deg)}
+.fc-face{
+  position:absolute;
+  inset:0;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  background:var(--surface);
+  border:1px solid var(--line-soft);
+  border-radius:16px;
+  padding:28px 26px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.fc-face-front{
+  background:linear-gradient(155deg,var(--surface) 0%,var(--bg-2) 100%);
+  border-left:3px solid var(--accent);
+}
+.fc-face-back{
+  transform:rotateY(180deg);
+  background:linear-gradient(155deg,var(--surface-2) 0%,var(--surface) 100%);
+  border-left:3px solid var(--good);
+}
+.fc-deck-tag{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:0.16em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.fc-deck-tag .fc-known-badge{
+  color:var(--good);
+  font-size:10px;
+  padding:2px 8px;
+  border:1px solid var(--good);
+  border-radius:20px;
+  letter-spacing:0.1em;
+}
+.fc-face-front .fc-q{
+  font-family:var(--serif);
+  font-size:22px;
+  font-weight:500;
+  letter-spacing:-0.01em;
+  line-height:1.3;
+  color:var(--ink);
+  margin-bottom:auto;
+}
+.fc-face-front .fc-q .fc-label-inline{
+  display:block;
+  font-family:var(--sans);
+  font-size:11.5px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.14em;
+  color:var(--ink-faint);
+  margin-bottom:10px;
+}
+.fc-face-front .fc-flip-hint{
+  margin-top:20px;
+  font-family:var(--mono);
+  font-size:10.5px;
+  color:var(--ink-faint);
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  text-align:center;
+  padding-top:14px;
+  border-top:1px dashed var(--line-soft);
+}
+.fc-face-back .fc-a-label{
+  font-family:var(--mono);
+  font-size:10.5px;
+  letter-spacing:0.16em;
+  text-transform:uppercase;
+  color:var(--good);
+  margin-bottom:12px;
+}
+.fc-face-back .fc-a{
+  font-size:15px;
+  line-height:1.55;
+  color:var(--ink);
+  overflow-y:auto;
+  flex:1;
+}
+.fc-face-back .fc-a p{color:var(--ink-dim);margin-bottom:10px;font-size:14.5px}
+.fc-face-back .fc-a p strong, .fc-face-back .fc-a strong{color:var(--ink)}
+.fc-face-back .fc-a ul{margin:8px 0 10px 18px;color:var(--ink-dim);font-size:14px}
+.fc-face-back .fc-a ul li{margin-bottom:4px}
+.fc-face-back .fc-a .fc-code{
+  font-family:var(--mono);
+  font-size:12.5px;
+  color:var(--accent-soft);
+  background:var(--bg-2);
+  padding:1px 6px;
+  border-radius:4px;
+}
+.fc-face-back .fc-source{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:0.1em;
+  color:var(--ink-faint);
+  text-transform:uppercase;
+  padding-top:14px;
+  margin-top:auto;
+  border-top:1px dashed var(--line-soft);
+}
+
+.fc-nav{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.fc-nav .btn{flex:1;min-width:110px;justify-content:center}
+.fc-hint{font-size:11.5px;color:var(--ink-faint);text-align:center;margin-top:12px}
+
+.fc-card.marked .fc-face-front{border-left-color:var(--good)}
+.fc-card.marked .fc-face-front .fc-deck-tag::after{
+  content:"✓ learned";
+  color:var(--good);
+  font-size:10px;
+  padding:2px 8px;
+  border:1px solid var(--good);
+  border-radius:20px;
+  letter-spacing:0.1em;
+}
+
+.fc-empty{
+  text-align:center;
+  padding:60px 20px;
+  background:var(--surface);
+  border:1px dashed var(--line-soft);
+  border-radius:12px;
+  color:var(--ink-faint);
+  font-size:14px;
+}
+.fc-empty h3{font-family:var(--serif);font-weight:500;color:var(--ink);margin-bottom:8px}
+
+/* Small screen tweaks */
+@media(max-width:560px){
+  .node{padding:18px}
+  .quiz-stage{padding:20px 18px}
+  h1.title{font-size:30px}
+  .fc-face{padding:22px 20px}
+  .fc-face-front .fc-q{font-size:19px}
+  .fc-nav .btn{min-width:0;padding:9px 10px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header class="masthead">
+  <div class="eyebrow">NHS Lung Cancer Screening Programme · Reporting Companion</div>
+  <h1 class="title">Nodules &amp; <em>incidental findings</em></h1>
+  <p class="subtitle">An interactive learning tool built from the 2025 LCSP Standard Protocol and QA Standards. For radiologist self-directed learning.</p>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button class="tab-btn active" data-tab="home"><span class="dot">01</span>Start</button>
+  <button class="tab-btn" data-tab="nodules"><span class="dot">02</span>Nodules</button>
+  <button class="tab-btn" data-tab="findings"><span class="dot">03</span>Incidentals</button>
+  <button class="tab-btn" data-tab="flashcards"><span class="dot">04</span>Flashcards</button>
+  <button class="tab-btn" data-tab="quiz"><span class="dot">05</span>Quiz</button>
+  <button class="tab-btn" data-tab="reference"><span class="dot">06</span>Reference</button>
+</nav>
+
+<!-- ============ HOME ============ -->
+<section id="home" class="active">
+  <div class="card card-accent">
+    <h2>How to use this tool</h2>
+    <p>This is a self-paced learning aid for radiologists reporting on the NHS Lung Cancer Screening Programme (LCSP). It has five working parts:</p>
+    <h4>Nodules</h4>
+    <p>A guided decision tree. Pick baseline or incident round, then describe the nodule — the tool walks you through the Table 4 pathway and tells you the correct interval or referral.</p>
+    <h4>Incidental findings</h4>
+    <p>Every incidental finding from Table 1 of the QA Standards, searchable and filterable by body system. Each shows reliability of detection, what to report, management, and the onward pathway from Annex 3.</p>
+    <h4>Flashcards</h4>
+    <p>Tap to flip. Covers every nodule pathway, every incidental finding, and the key numbers you need to know. Filter by topic, mark cards you've learned, and shuffle the deck. Works brilliantly on the phone for a five-minute refresher.</p>
+    <h4>Quiz</h4>
+    <p>Clinical scenarios with immediate feedback — 25 cases mixing nodule management and incidental-finding decisions. Useful for PERFECTS-style calibration practice.</p>
+    <h4>Reference</h4>
+    <p>Quick-lookup values: size thresholds, VDT cut-offs, Brock risk, scan interval windows.</p>
+    <div class="btn-row" style="margin-top:18px">
+      <button class="btn btn-primary" data-go="flashcards">Open flashcards →</button>
+      <button class="btn" data-go="nodules">Decision tree</button>
+      <button class="btn" data-go="quiz">Scenario quiz</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Sources</h3>
+    <p style="font-size:13px">Built from two NHS England documents you supplied:</p>
+    <ul style="margin-left:18px;color:var(--ink-dim);font-size:13px">
+      <li style="margin-bottom:6px"><em>Targeted Screening for Lung Cancer with Low Radiation Dose Computed Tomography: Standard Protocol</em> (B1646, Feb 2025) — sections 3–6 and Table 4.</li>
+      <li><em>Quality Assurance Standards</em> (B1647, Feb 2025) — Annex 1 (reporting proforma), Annex 2 (incidental findings protocol &amp; Table 1), Annex 3 (national IF pathways).</li>
+    </ul>
+    <p style="font-size:12.5px;color:var(--ink-faint);margin-top:10px">This is a learning aid, not a clinical decision system. Always consult the source documents and your local Screening Review Meeting for actual reporting decisions.</p>
+  </div>
+</section>
+
+<!-- ============ NODULES ============ -->
+<section id="nodules">
+  <h2>Nodule management</h2>
+  <p>Walk through the Table 4 pathway step by step. Start here every time — the logic differs between baseline and incident rounds.</p>
+
+  <div id="nodule-trail" class="path-trail" style="display:none"></div>
+  <div id="nodule-tree"></div>
+  <div class="btn-row">
+    <button class="btn" id="nodule-restart" style="display:none">↻ Restart pathway</button>
+    <button class="btn" id="nodule-back" style="display:none">← Back one step</button>
+  </div>
+</section>
+
+<!-- ============ FINDINGS ============ -->
+<section id="findings">
+  <h2>Incidental findings</h2>
+  <p>Based on Table 1 of the QA Standards (Annex 2) with onward pathways from Annex 3. Tap any finding to expand.</p>
+
+  <input type="text" class="if-search" id="if-search" placeholder="Search findings (e.g. aneurysm, coronary, adrenal)…">
+  <div class="if-filters" id="if-filters">
+    <button class="active" data-cat="all">All</button>
+    <button data-cat="pulmonary">Pulmonary</button>
+    <button data-cat="cardiac">Cardiac / vascular</button>
+    <button data-cat="mediastinal">Mediastinal / pleural</button>
+    <button data-cat="abdominal">Abdominal</button>
+    <button data-cat="other">Other</button>
+  </div>
+  <div id="if-list"></div>
+</section>
+
+<!-- ============ FLASHCARDS ============ -->
+<section id="flashcards">
+  <h2>Flashcards</h2>
+  <p>Tap the card to flip. Covers every nodule pathway, every incidental finding, and the key numbers. Use the filters to drill a specific topic.</p>
+
+  <div class="fc-filters" id="fc-filters">
+    <button class="active" data-deck="all">All decks</button>
+    <button data-deck="baseline-nodule">Baseline nodules</button>
+    <button data-deck="incident-nodule">Incident round</button>
+    <button data-deck="subsolid">Sub-solid</button>
+    <button data-deck="vdt">VDT &amp; risk</button>
+    <button data-deck="incidental">Incidentals</button>
+    <button data-deck="numbers">Key numbers</button>
+    <button data-deck="known">✓ Known</button>
+  </div>
+
+  <div class="fc-bar">
+    <div class="fc-progress"><span id="fc-counter">—</span></div>
+    <div class="fc-bar-actions">
+      <button class="btn btn-sm" id="fc-shuffle">⇄ Shuffle</button>
+      <button class="btn btn-sm" id="fc-reset">↻ Reset known</button>
+    </div>
+  </div>
+
+  <div id="fc-stage">
+    <!-- card rendered here -->
+  </div>
+
+  <div class="fc-nav">
+    <button class="btn" id="fc-prev">← Previous</button>
+    <button class="btn btn-primary" id="fc-mark">Mark as known ✓</button>
+    <button class="btn" id="fc-next">Next →</button>
+  </div>
+  <p class="fc-hint">Tip: tap card to flip. Use the Next button (or arrow keys on desktop) to advance.</p>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz">
+  <h2>Clinical scenarios</h2>
+  <p>Short cases drawn from the Standard Protocol and QA Standards. Answer, get feedback, move on.</p>
+  <div id="quiz-root"></div>
+</section>
+
+<!-- ============ REFERENCE ============ -->
+<section id="reference">
+  <h2>Quick reference</h2>
+  <p>The numbers you'll need most often while reporting.</p>
+
+  <h3>Solid nodule size thresholds</h3>
+  <div class="ref-grid">
+    <div class="ref-tile"><div class="k">&lt; 80 mm³ or &lt; 5 mm</div><div class="v">Below reporting threshold. <strong>Discharge</strong> to next screening round.</div></div>
+    <div class="ref-tile"><div class="k">80 – &lt; 300 mm³</div><div class="v">Indeterminate. <strong>3-month surveillance.</strong></div></div>
+    <div class="ref-tile"><div class="k">6 – &lt; 8 mm (no volumetry)</div><div class="v">Indeterminate. <strong>3-month surveillance.</strong></div></div>
+    <div class="ref-tile"><div class="k">5 – 6 mm (no volumetry)</div><div class="v">Indeterminate. <strong>12-month surveillance.</strong></div></div>
+    <div class="ref-tile"><div class="k">≥ 300 mm³ or ≥ 8 mm, Brock &lt; 10%</div><div class="v"><strong>3-month surveillance.</strong></div></div>
+    <div class="ref-tile"><div class="k">≥ 300 mm³ or ≥ 8 mm, Brock ≥ 10%</div><div class="v"><span class="pill pill-bad">Refer</span> to lung cancer MDT.</div></div>
+  </div>
+
+  <h3>New nodules on incident / interval CT</h3>
+  <div class="ref-grid">
+    <div class="ref-tile"><div class="k">New, &lt; 30 mm³ or &lt; 4 mm</div><div class="v">Discharge to next screening round.</div></div>
+    <div class="ref-tile"><div class="k">New, 30 – &lt; 300 mm³</div><div class="v">3-month surveillance.</div></div>
+    <div class="ref-tile"><div class="k">New, 4 – &lt; 8 mm (no volumetry)</div><div class="v">3-month surveillance.</div></div>
+    <div class="ref-tile"><div class="k">New, ≥ 300 mm³ or ≥ 8 mm</div><div class="v"><span class="pill pill-bad">Refer</span></div></div>
+  </div>
+
+  <h3>Sub-solid nodule thresholds (baseline)</h3>
+  <div class="ref-grid">
+    <div class="ref-tile"><div class="k">&lt; 5 mm (or PSN solid component &lt; 5 mm)</div><div class="v">Discharge to next round.</div></div>
+    <div class="ref-tile"><div class="k">GGN ≥ 5 mm</div><div class="v">3-month scan. If persists: 9 mo, 12 mo, 24 mo, 48 mo.</div></div>
+    <div class="ref-tile"><div class="k">PSN, solid ≥ 5 mm</div><div class="v">3-month scan. If persists: 9 mo, 12 mo, 24 mo, 48 mo. Assess Brock + morphology.</div></div>
+  </div>
+
+  <h3>Stability definitions</h3>
+  <div class="ref-grid">
+    <div class="ref-tile"><div class="k">Solid, reliable volumetry</div><div class="v">&lt; 25% volume change from nodule's first occurrence.</div></div>
+    <div class="ref-tile"><div class="k">Solid, unreliable volumetry</div><div class="v">&lt; 2 mm change in max diameter.</div></div>
+    <div class="ref-tile"><div class="k">Sub-solid</div><div class="v">&lt; 2 mm change in total or solid component.</div></div>
+  </div>
+
+  <h3>Volume doubling time (VDT)</h3>
+  <div class="ref-grid">
+    <div class="ref-tile"><div class="k">VDT &gt; 600 days</div><div class="v">Annual LDCT — back to screening intervals.</div></div>
+    <div class="ref-tile"><div class="k">VDT 400 – 600 days</div><div class="v">Surveillance or biopsy / resection per participant preference.</div></div>
+    <div class="ref-tile"><div class="k">VDT &lt; 400 days</div><div class="v">Investigate further once nodule is large enough for meaningful intervention.</div></div>
+  </div>
+
+  <h3>Brock &amp; Herder risk</h3>
+  <div class="ref-grid">
+    <div class="ref-tile"><div class="k">Brock ≥ 10%</div><div class="v">MDT / SRM referral; usually PET-CT.</div></div>
+    <div class="ref-tile"><div class="k">Herder &gt; 10% post-PET</div><div class="v">Managed respiratory clinic or screening programme; higher scores → respiratory service.</div></div>
+  </div>
+
+  <h3>Scan timing windows</h3>
+  <div class="ref-grid">
+    <div class="ref-tile"><div class="k">LDCT after risk assessment</div><div class="v">Within 56 days of risk assessment.</div></div>
+    <div class="ref-tile"><div class="k">Surveillance scans (3 / 12 mo)</div><div class="v">Up to 28 days after target date. Not before target.</div></div>
+    <div class="ref-tile"><div class="k">Screening round scan (24 mo)</div><div class="v">± 56 days of target date.</div></div>
+    <div class="ref-tile"><div class="k">Respiratory infection</div><div class="v">Defer 6 weeks to avoid false positives.</div></div>
+  </div>
+
+  <h3>CT technical minimums</h3>
+  <div class="ref-grid">
+    <div class="ref-tile"><div class="k">Scanner</div><div class="v">≥ 16-channel multi-detector CT.</div></div>
+    <div class="ref-tile"><div class="k">Slice thickness</div><div class="v">≤ 1.25 mm (example: 1 mm / 0.7 mm increment).</div></div>
+    <div class="ref-tile"><div class="k">Radiation dose</div><div class="v">&lt; 2 mSv for standard 70 kg adult.</div></div>
+    <div class="ref-tile"><div class="k">CAD false-positive rate</div><div class="v">&lt; 2 per case.</div></div>
+    <div class="ref-tile"><div class="k">Radiologist volume</div><div class="v">≥ 500 thoracic CTs per annum.</div></div>
+    <div class="ref-tile"><div class="k">Reporting rate</div><div class="v">12–20 scans per PA (aim ≥ 20 with experience).</div></div>
+  </div>
+
+  <h3>QA threshold</h3>
+  <div class="ref-grid">
+    <div class="ref-tile"><div class="k">Clinically significant IF rate</div><div class="v">Overall target &lt; 8% (NHSE QA standard).</div></div>
+  </div>
+</section>
+
+<footer>
+  <p><strong style="color:var(--ink-dim)">LCSP Reporting Companion</strong> · Built from the NHS England Lung Cancer Screening Programme Standard Protocol (B1646, Feb 2025) and Quality Assurance Standards (B1647, Feb 2025).</p>
+  <p style="margin-top:6px">Not a clinical decision tool. Use alongside, not instead of, the source documents, your Screening Review Meeting, and your Responsible Radiologist.</p>
+</footer>
+
+</div>
+
+<script>
+/* ==========================================
+   TAB NAVIGATION
+   ========================================== */
+const tabs = document.querySelectorAll('.tab-btn');
+const sections = document.querySelectorAll('section');
+function goTo(id){
+  tabs.forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
+  sections.forEach(s=>s.classList.toggle('active', s.id===id));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+tabs.forEach(t=>t.addEventListener('click',()=>goTo(t.dataset.tab)));
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>goTo(b.dataset.go)));
+
+/* ==========================================
+   NODULE DECISION TREE
+   Built from Table 4 of the Standard Protocol.
+   Each node: question + options. Each option leads to another
+   node id OR an outcome (by referencing OUTCOMES map).
+   ========================================== */
+const NODULE_NODES = {
+  start: {
+    q: "Which scan round is this?",
+    hint: "Baseline round = first screening round including baseline scan and its surveillance scans. Incident round = any subsequent screening round.",
+    opts: [
+      {label:"Baseline round CT", sub:"First LDCT or its follow-up scans", next:"b-type"},
+      {label:"Incident round CT", sub:"Any 24-month screening round after baseline", next:"i-type"}
+    ]
+  },
+
+  /* ---------- BASELINE ---------- */
+  "b-type": {
+    q: "What does the CT show?",
+    hint: "If multiple nodules, manage the most concerning one; at least the two largest (including largest overall) must be recorded.",
+    opts:[
+      {label:"No nodules or nothing significant", sub:"", next:"out-discharge-baseline"},
+      {label:"Solid nodule(s)", sub:"Homogeneous soft-tissue density", next:"b-solid-vol"},
+      {label:"Sub-solid nodule — pure ground-glass (GGN)", sub:"No solid component", next:"b-ggn"},
+      {label:"Sub-solid nodule — part-solid (PSN)", sub:"Has a solid component", next:"b-psn"}
+    ]
+  },
+
+  "b-solid-vol":{
+    q:"Can you get reliable volumetric segmentation?",
+    hint:"Visually check the segmentation. If unreliable, use maximal axial diameter on lung windows, excluding spiculation.",
+    opts:[
+      {label:"Yes — volumetry is reliable", sub:"Use volume in mm³", next:"b-solid-vol-size"},
+      {label:"No — use max diameter instead", sub:"Measure largest axial diameter", next:"b-solid-diam-size"}
+    ]
+  },
+
+  "b-solid-vol-size":{
+    q:"What is the nodule volume?",
+    opts:[
+      {label:"< 80 mm³", sub:"Below threshold for characterisation", next:"out-discharge-baseline"},
+      {label:"80 to < 300 mm³", sub:"Indeterminate", next:"out-3mo-then-9mo"},
+      {label:"≥ 300 mm³", sub:"Check Brock score", next:"b-brock-vol"}
+    ]
+  },
+
+  "b-brock-vol":{
+    q:"What is the Brock risk score?",
+    hint:"Calculated automatically by the reporting software.",
+    opts:[
+      {label:"Brock < 10%", sub:"Lower-risk", next:"out-3mo-then-9mo"},
+      {label:"Brock ≥ 10%", sub:"Suspicious", next:"out-refer-cancer"}
+    ]
+  },
+
+  "b-solid-diam-size":{
+    q:"What is the maximum diameter?",
+    opts:[
+      {label:"< 5 mm", sub:"Below threshold", next:"out-discharge-baseline"},
+      {label:"5 to < 6 mm", sub:"", next:"out-12mo-then-12mo"},
+      {label:"6 to < 8 mm", sub:"", next:"out-3mo-9mo-12mo"},
+      {label:"≥ 8 mm", sub:"Check Brock", next:"b-brock-diam"}
+    ]
+  },
+
+  "b-brock-diam":{
+    q:"What is the Brock risk score?",
+    opts:[
+      {label:"Brock < 10%", sub:"", next:"out-3mo-9mo-12mo"},
+      {label:"Brock ≥ 10%", sub:"", next:"out-refer-cancer"}
+    ]
+  },
+
+  "b-ggn":{
+    q:"Ground-glass nodule max diameter?",
+    opts:[
+      {label:"< 5 mm", sub:"", next:"out-discharge-baseline"},
+      {label:"≥ 5 mm", sub:"", next:"out-ggn-pathway"}
+    ]
+  },
+
+  "b-psn":{
+    q:"Part-solid nodule: size of the solid component?",
+    hint:"Measurements include overall max diameter and solid-component max diameter.",
+    opts:[
+      {label:"Solid component < 5 mm", sub:"", next:"out-discharge-baseline"},
+      {label:"Solid component ≥ 5 mm", sub:"", next:"out-psn-pathway"}
+    ]
+  },
+
+  /* ---------- INCIDENT ---------- */
+  "i-type":{
+    q:"Is this a known nodule or a new nodule?",
+    hint:"'New' means it was not present on the most recent prior CT.",
+    opts:[
+      {label:"Known nodule (seen on prior CT)", sub:"Assess for change", next:"i-known-type"},
+      {label:"New nodule since prior CT", sub:"Not present last time", next:"i-new-type"},
+      {label:"No nodule / nothing significant", sub:"", next:"out-discharge-next"}
+    ]
+  },
+
+  "i-known-type":{
+    q:"Is it solid or sub-solid?",
+    opts:[
+      {label:"Solid", sub:"", next:"i-known-solid"},
+      {label:"Sub-solid (GGN or PSN)", sub:"", next:"i-known-subsolid"}
+    ]
+  },
+
+  "i-known-solid":{
+    q:"Is the nodule stable compared with prior?",
+    hint:"Stable = <25% volume change (reliable volumetry), or <2mm diameter change (no volumetry).",
+    opts:[
+      {label:"Stable", sub:"No significant change", next:"out-stable-known"},
+      {label:"Growing", sub:"Volume ≥25% or diameter ≥2mm increase", next:"i-growing-solid"}
+    ]
+  },
+
+  "i-growing-solid":{
+    q:"What is the volume doubling time (VDT)?",
+    hint:"Calculated from the nodule's first appearance in the programme.",
+    opts:[
+      {label:"VDT > 600 days", sub:"Slow growth", next:"out-vdt-slow"},
+      {label:"VDT 400 – 600 days", sub:"Intermediate", next:"out-vdt-inter"},
+      {label:"VDT < 400 days", sub:"Rapid growth", next:"out-vdt-fast"}
+    ]
+  },
+
+  "i-known-subsolid":{
+    q:"Has it changed since prior CT?",
+    opts:[
+      {label:"Stable (size, morphology, density)", sub:"", next:"out-stable-known"},
+      {label:"Growing, density changed, or morphology altered", sub:"Including solid component growth in PSN", next:"out-subsolid-change"}
+    ]
+  },
+
+  "i-new-type":{
+    q:"New nodule — is it solid or sub-solid?",
+    hint:"Only discrete non-inflammatory nodules should be designated for follow-up.",
+    opts:[
+      {label:"Solid", sub:"", next:"i-new-solid-size"},
+      {label:"Sub-solid", sub:"Manage as baseline-round sub-solid", next:"b-ggn"}
+    ]
+  },
+
+  "i-new-solid-size":{
+    q:"Can you measure volumetrically?",
+    opts:[
+      {label:"Yes — use volume", sub:"", next:"i-new-solid-vol"},
+      {label:"No — use diameter", sub:"", next:"i-new-solid-diam"}
+    ]
+  },
+
+  "i-new-solid-vol":{
+    q:"New solid nodule volume?",
+    opts:[
+      {label:"< 30 mm³", sub:"", next:"out-discharge-next"},
+      {label:"30 to < 300 mm³", sub:"", next:"out-new-3mo-9mo"},
+      {label:"≥ 300 mm³", sub:"", next:"out-refer-cancer"}
+    ]
+  },
+
+  "i-new-solid-diam":{
+    q:"New solid nodule max diameter?",
+    opts:[
+      {label:"< 4 mm", sub:"", next:"out-discharge-next"},
+      {label:"4 to < 8 mm", sub:"", next:"out-new-3mo-9mo-12mo"},
+      {label:"≥ 8 mm", sub:"", next:"out-refer-cancer"}
+    ]
+  }
+};
+
+const OUTCOMES = {
+  "out-discharge-baseline":{
+    type:"discharge",
+    label:"Discharge to next screening round",
+    title:"No action within this screening round",
+    body:`<p>Below the characterisation threshold. No further surveillance scan needed.</p>
+          <p><strong>Next scan:</strong> 24 months from baseline (next screening round).</p>`
+  },
+  "out-discharge-next":{
+    type:"discharge",
+    label:"Discharge to next screening round",
+    title:"Return to routine screening",
+    body:`<p>Below threshold for surveillance. Continue with planned 24-month screening interval from the most recent stable scan.</p>`
+  },
+  "out-3mo-then-9mo":{
+    type:"surveillance",
+    label:"Surveillance — 3 months → 9 months",
+    title:"3-month LDCT, then 12 months from baseline if stable",
+    body:`<p><strong>Scan 1:</strong> 3 months from current scan.</p>
+          <p><strong>Scan 2 (if stable):</strong> a further 9 months (= 12 months from baseline). If stable, discharge to next screening round.</p>
+          <p>Remember: stable for reliable volumetry = &lt;25% volume change.</p>`
+  },
+  "out-3mo-9mo-12mo":{
+    type:"surveillance",
+    label:"Surveillance — 3, 9, then 12 months",
+    title:"3-month LDCT → 12 months → 24 months from baseline",
+    body:`<p><strong>Scan 1:</strong> 3 months from current scan.</p>
+          <p><strong>Scan 2 (if stable):</strong> a further 9 months (= 12 months from baseline).</p>
+          <p><strong>Scan 3 (if stable):</strong> a further 12 months (= 24 months from baseline). Then discharge if stable.</p>
+          <p>This longer pathway applies when volumetry is not possible — growth assessment is less precise so one extra scan is added.</p>`
+  },
+  "out-12mo-then-12mo":{
+    type:"surveillance",
+    label:"Surveillance — 12 months → 12 months",
+    title:"12-month LDCT, then 24 months from baseline if stable",
+    body:`<p>For 5–6 mm nodules where volumetry is not possible.</p>
+          <p><strong>Scan 1:</strong> 12 months from baseline.</p>
+          <p><strong>Scan 2 (if stable):</strong> a further 12 months (= 24 months from baseline). Then discharge.</p>`
+  },
+  "out-ggn-pathway":{
+    type:"surveillance",
+    label:"GGN pathway — prolonged surveillance",
+    title:"3 months, then assess malignancy risk, then extended follow-up",
+    body:`<p><strong>Scan 1:</strong> 3 months.</p>
+          <p>If it persists, assess malignancy risk (size, morphology, density, Brock score):</p>
+          <ul>
+            <li>Low risk: further scans at 9 months, then 12, 24, and 48 months.</li>
+            <li>If stable at each step, discharge to the next screening round.</li>
+          </ul>
+          <p>Pure GGNs have excellent prognosis — long observation minimises over-diagnosis.</p>`
+  },
+  "out-psn-pathway":{
+    type:"surveillance",
+    label:"PSN pathway — prolonged surveillance",
+    title:"3 months, reassess risk, then extended follow-up",
+    body:`<p><strong>Scan 1:</strong> 3 months.</p>
+          <p>If it persists, assess size and growth of the <em>solid component</em>, morphology, density, Brock score:</p>
+          <ul>
+            <li>Further scans at 9 months, then 12, 24, and 48 months.</li>
+            <li>Any growth of solid component ≥2 mm, change in morphology, or Brock ≥10% → consider histology / definitive management.</li>
+          </ul>`
+  },
+  "out-refer-cancer":{
+    type:"refer",
+    label:"Refer — suspected lung cancer",
+    title:"Refer to suspected lung cancer pathway (via SRM)",
+    body:`<p>Nodule meets thresholds for urgent investigation:</p>
+          <ul>
+            <li>≥ 300 mm³ or ≥ 8 mm <strong>and</strong> Brock ≥ 10%, OR</li>
+            <li>New solid nodule ≥ 300 mm³ or ≥ 8 mm on incident/interval CT.</li>
+          </ul>
+          <p><strong>Action:</strong> Discuss at Screening Review Meeting. Usually proceeds to PET-CT; refer into the suspected lung cancer rapid assessment and diagnosis pathway.</p>`
+  },
+  "out-stable-known":{
+    type:"discharge",
+    label:"Discharge if minimum surveillance complete",
+    title:"Stable known nodule",
+    body:`<p>Discharge to next screening round <strong>if</strong> the minimum surveillance period for this nodule has been completed.</p>
+          <p>Reminder of minimum periods:</p>
+          <ul>
+            <li>Reliably volumetric nodule: ≥ 12 months of follow-up.</li>
+            <li>Non-volumetric nodule: ≥ 24 months of follow-up.</li>
+          </ul>`
+  },
+  "out-subsolid-change":{
+    type:"refer",
+    label:"Consider referral or closer surveillance",
+    title:"Sub-solid nodule with concerning change",
+    body:`<p>Growth, density change, or altered morphology (including solid-component growth in a PSN) → review at Screening Review Meeting.</p>
+          <p>Options depend on level of concern: closer CT surveillance, PET-CT, or histological sampling.</p>
+          <p>Brock score &gt; 10% or solid component growth ≥ 2 mm → strongly consider histological diagnosis.</p>`
+  },
+  "out-vdt-slow":{
+    type:"surveillance",
+    label:"VDT > 600 days — annual LDCT",
+    title:"Return to annual screening interval",
+    body:`<p>Confirmed slow growth. The nodule can be returned for annual LDCT surveillance rather than urgent investigation.</p>`
+  },
+  "out-vdt-inter":{
+    type:"surveillance",
+    label:"VDT 400–600 days — shared decision",
+    title:"Surveillance or biopsy / resection",
+    body:`<p>Intermediate growth. Offer surveillance <em>or</em> biopsy/resection based on participant preference after discussion.</p>
+          <p>Review at the Screening Review Meeting.</p>`
+  },
+  "out-vdt-fast":{
+    type:"refer",
+    label:"VDT < 400 days — investigate",
+    title:"Further investigation required",
+    body:`<p>Rapid doubling. Investigate further (PET-CT, percutaneous biopsy, lung resection) per participant preference, <strong>provided</strong> the nodule has reached a size suitable for meaningful intervention.</p>`
+  },
+  "out-new-3mo-9mo":{
+    type:"surveillance",
+    label:"3 months, then 9 months if stable",
+    title:"New nodule surveillance",
+    body:`<p><strong>Scan 1:</strong> 3 months.</p>
+          <p>If it resolves → discharge to next screening round.</p>
+          <p>If it persists but is stable: <strong>Scan 2</strong> a further 9 months. If stable, discharge.</p>`
+  },
+  "out-new-3mo-9mo-12mo":{
+    type:"surveillance",
+    label:"3, 9, then 12 months",
+    title:"New nodule surveillance (no volumetry)",
+    body:`<p><strong>Scan 1:</strong> 3 months.</p>
+          <p>If it resolves → discharge.</p>
+          <p>If it persists but stable: <strong>Scan 2</strong> a further 9 months, then <strong>Scan 3</strong> a further 12 months. If stable at all steps, discharge.</p>`
+  }
+};
+
+let noduleHistory = [];
+function renderNoduleStep(nodeId){
+  const tree = document.getElementById('nodule-tree');
+  const trail = document.getElementById('nodule-trail');
+  const restart = document.getElementById('nodule-restart');
+  const back = document.getElementById('nodule-back');
+
+  restart.style.display = noduleHistory.length ? 'inline-flex' : 'none';
+  back.style.display = noduleHistory.length ? 'inline-flex' : 'none';
+
+  // Path crumbs
+  if(noduleHistory.length){
+    trail.style.display='flex';
+    trail.innerHTML = noduleHistory.map((step,i)=>
+      `<span class="crumb">${step.label}</span>${i<noduleHistory.length-1?'<span class="sep">›</span>':''}`
+    ).join('');
+  } else {
+    trail.style.display='none';
+  }
+
+  if(OUTCOMES[nodeId]){
+    const o = OUTCOMES[nodeId];
+    tree.innerHTML = `
+      <div class="outcome ${o.type}">
+        <div class="outcome-label">${o.label}</div>
+        <h3>${o.title}</h3>
+        ${o.body}
+      </div>
+    `;
+    return;
+  }
+
+  const node = NODULE_NODES[nodeId];
+  if(!node){tree.innerHTML = '<p>Unknown step.</p>';return}
+
+  tree.innerHTML = `
+    <div class="node">
+      <div class="node-q">${node.q}</div>
+      ${node.hint ? `<div class="node-hint">${node.hint}</div>` : ''}
+      <div class="options">
+        ${node.opts.map((o,i)=>`
+          <button class="opt" data-idx="${i}" data-next="${o.next}">
+            <span class="opt-main">${o.label}</span>
+            ${o.sub ? `<span class="opt-sub">${o.sub}</span>` : ''}
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+  tree.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const next = btn.dataset.next;
+      const label = btn.querySelector('.opt-main').textContent;
+      noduleHistory.push({node:nodeId, label, next});
+      renderNoduleStep(next);
+    });
+  });
+}
+document.getElementById('nodule-restart').addEventListener('click',()=>{
+  noduleHistory=[];renderNoduleStep('start');
+});
+document.getElementById('nodule-back').addEventListener('click',()=>{
+  // Each history entry records the step at which a choice was made.
+  // To go "back one step" we pop the most recent choice and re-render the step
+  // where that choice was made.
+  if(!noduleHistory.length){renderNoduleStep('start');return}
+  const last = noduleHistory.pop();
+  renderNoduleStep(last.node);
+});
+renderNoduleStep('start');
+
+/* ==========================================
+   INCIDENTAL FINDINGS
+   ========================================== */
+const FINDINGS = [
+  {
+    id:'emphysema',cat:'pulmonary',name:'Emphysema',rel:'Good',
+    report:'<p>Classify extent as <strong>mild (&lt;25%)</strong>, <strong>moderate (25–50%)</strong>, or <strong>severe (&gt;50%)</strong>. Also record predominant type (centrilobular / paraseptal / panacinar).</p>',
+    mgmt:'<p>Inform participants with moderate-to-severe radiological emphysema and recommend they seek advice from primary care if they have symptoms.</p><p>Do not refer participants who already have a known COPD diagnosis or if the LHC has established they are asymptomatic.</p>',
+    pathway:'<p>Communication only (standard letter). Locally-funded services may offer assessment in primary or secondary care. Current smokers → smoking cessation referral with emphasis in those with moderate/severe emphysema.</p>',
+    resp:'SC (screening coordinator)'
+  },
+  {
+    id:'ila',cat:'pulmonary',name:'Interstitial lung abnormalities (ILA)',rel:'Good',
+    report:'<p>Report all ILA as an estimated percentage of the whole lungs.</p>',
+    mgmt:'<p><strong>ILA involving &gt;10%</strong> of either whole lung: refer for specialist review via Screening Review Meeting.</p><p>ILA &lt;10% that is not progressing: return to screen — the lung cancer screening programme itself may flag progression on subsequent scans.</p>',
+    pathway:'<p>Referral by the screening service direct to local ILD service for ILA &gt;10% or for ILA that has progressed. Alternative: referral via primary care with same thresholds. If concern and exiting programme, discharge with standard letter for ongoing surveillance.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'bronchiectasis',cat:'pulmonary',name:'Bronchiectasis',rel:'Good',
+    report:'<p>Report when moderate or severe: airways &gt; 2× diameter of adjacent artery, involving more than one segment.</p>',
+    mgmt:'<p>Review at Screening Review Meeting if moderate or severe. Ensure clinical assessment to check for symptoms — via existing records, lung health check, or direct assessment in primary/secondary care.</p>',
+    pathway:'<p>Direct referral to local respiratory / bronchiectasis service for moderate-severe disease. Alternative: referral to primary care for clinical assessment and onward referral.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'rb',cat:'pulmonary',name:'Respiratory bronchiolitis (RB)',rel:'Good',
+    report:'<p><strong>Do not report.</strong></p>',
+    mgmt:'<p>Smoking cessation will be offered to all current smokers irrespective of the presence of RB-ILD, so no separate action is needed.</p>',
+    pathway:'<p>N/A.</p>',resp:'—'
+  },
+  {
+    id:'consolidation',cat:'pulmonary',name:'Consolidation',rel:'Good',
+    report:'<p>Classify as possibly inflammatory, possibly malignant, or inflammatory. Do not report minor areas of consolidation or tree-in-bud that are clearly inflammatory.</p>',
+    mgmt:'<p>Cancer more likely than inflammation → refer to SRM. Inflammation more likely than cancer → refer to SRM, consider repeat CT at 6 weeks or 3 months depending on concern (inside or outside screening programme).</p>',
+    pathway:'<p>If cancer suspected: urgent cancer pathway referral. If infection: interval CT either within programme or in secondary care. Primary-care clinical review only if an antibiotic decision is needed.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'pleural',cat:'mediastinal',name:'Pleural effusion / thickening / mass',rel:'Moderate',
+    report:'<p>Report size, laterality (unilateral R / L / bilateral), and whether malignant features are present.</p><p>Describe unusual lesions (e.g. schwannoma) in free text.</p>',
+    mgmt:'<p>Refer directly via SRM for clinical assessment and work-up if suspicious appearances — new effusion, pleural thickening suspicious for malignancy, or mass lesion.</p>',
+    pathway:'<p>No alternative pathway — manage within secondary care.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'plaques',cat:'mediastinal',name:'Pleural plaques',rel:'Good',
+    report:'<p>Generally <strong>do not report</strong>, or do so only as a note.</p><p>Reporting in the screening context is only recommended in jurisdictions where compensation is available (Scotland, Northern Ireland).</p>',
+    mgmt:'<p>No clinical activity should be generated for benign appearances.</p>',
+    pathway:'<p>In Scotland and Northern Ireland: a flag for SRM discussion is needed so participant can be informed (plaques are benign; compensation may be available).</p>',
+    resp:'SC (where relevant)'
+  },
+  {
+    id:'tb',cat:'pulmonary',name:'Tuberculosis (active TB)',rel:'Good',
+    report:'<p>Report if active TB is likely; include differential diagnoses.</p>',
+    mgmt:'<p>Direct referral to local TB service for active TB.</p>',
+    pathway:'<p>Alternative: referral into local TB service via primary care.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'bronchial-wall',cat:'pulmonary',name:'Bronchial wall thickening',rel:'Good',
+    report:'<p><strong>Do not report.</strong></p>',
+    mgmt:'<p>No action required.</p>',pathway:'<p>N/A.</p>',resp:'—'
+  },
+  {
+    id:'cac',cat:'cardiac',name:'Coronary artery calcification (CAC)',rel:'Good',
+    report:'<p>Report CAC using simple visual scoring: <strong>mild / moderate / severe</strong>.</p><p>Note: mild CAC is not established to confer risk beyond a QRISK-type assessment.</p>',
+    mgmt:'<p>Cardiovascular risk assessment reminder if moderate or severe CAC present, unless the participant is already on lipid-lowering therapy or has known ischaemic heart disease.</p>',
+    pathway:'<p>No referral. Letter to participant with moderate or severe CAC encouraging primary care review, consideration of lipid-lowering therapy, lifestyle changes, and seeking medical advice for symptoms. Include smoking cessation advice.</p>',
+    resp:'SC'
+  },
+  {
+    id:'avc',cat:'cardiac',name:'Aortic valve calcification / disease',rel:'Good',
+    report:'<p>Report aortic valve calcification if moderate or severe (simple visual scoring).</p><p>Isolated specks of calcification do not require reporting.</p>',
+    mgmt:'<p>Refer those with moderate or severe AVC for evaluation with echocardiography via SRM.</p>',
+    pathway:'<p>Preferred: echocardiogram requested in secondary care; referral to cardiology only if significant aortic valve disease. May simply be added to local valve register. Alternative: refer to primary care for moderate/severe to request echocardiogram and onward management.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'thoracic-aorta',cat:'cardiac',name:'Thoracic aortic dilatation / calcification',rel:'Good',
+    report:'<p>Report thoracic aortic diameter if <strong>≥ 45 mm</strong>.</p><p><strong>Do not report</strong> thoracic aortic calcification.</p>',
+    mgmt:'<p>Aorta 45–50 mm: referral for further assessment per local pathway. &gt; 50 mm: urgent referral.</p>',
+    pathway:'<p>No alternative pathway. Standard letter about finding and need to check blood pressure (45–50 mm) or about urgent referral (&gt;50 mm).</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'mediastinal-mass',cat:'mediastinal',name:'Mediastinal mass',rel:'Moderate',
+    report:'<p>Report size, morphology, position, density / texture, including whether cystic.</p>',
+    mgmt:'<p>Refer all <strong>non-cystic</strong> lesions to SRM. Options include surveillance within the screening programme or work-up depending on clinical assessment.</p>',
+    pathway:'<p>No alternative pathway. Bespoke letter explaining finding and plan; standard letter for outcome of further imaging.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'mediastinal-nodes',cat:'mediastinal',name:'Mediastinal / hilar lymph nodes',rel:'Moderate',
+    report:'<p>Report mediastinal and hilar lymphadenopathy <strong>≥ 15 mm</strong> short axis.</p>',
+    mgmt:'<p>Refer to SRM for further assessment.</p>',
+    pathway:'<p>If referral required, manage within respiratory service. No alternative pathway.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'thyroid',cat:'other',name:'Thyroid abnormalities',rel:'Poor',
+    report:'<p>Report nodules with suspicious features such as lymphadenopathy or punctate microcalcification.</p>',
+    mgmt:'<p>Refer to thyroid MDT via SRM for nodules with suspicious features or size ≥ 20 mm (per local policy).</p>',
+    pathway:'<p>No specific alternative; workup via SRM routing.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'cardiac-decomp',cat:'cardiac',name:'Cardiac decompensation / pericardial effusion',rel:'Moderate',
+    report:'<p>Report features of significant cardiac decompensation. Report moderate or large pericardial effusion.</p>',
+    mgmt:'<p>Referral for echocardiography and clinical assessment via SRM or primary care. Urgent referral may be indicated for concerning features.</p>',
+    pathway:'<p>Manage both scenarios in secondary care. Bespoke letter about findings and outcome.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'oesophagus',cat:'abdominal',name:'Oesophageal lesions',rel:'Moderate',
+    report:'<p>Report diffuse wall thickening or focal lesions.</p>',
+    mgmt:'<p>Referral for further assessment via SRM.</p>',
+    pathway:'<p>No alternative pathway.</p>',resp:'RC / SC'
+  },
+  {
+    id:'aaa',cat:'abdominal',name:'Abdominal aortic aneurysm (AAA)',rel:'Moderate',
+    report:'<p>Report all AAA.</p>',
+    mgmt:'<p>Refer to vascular team: <strong>3–5 cm</strong> — standard referral for surveillance. <strong>&gt; 5 cm</strong> — urgent referral.</p>',
+    pathway:'<p>Refer to vascular: 3–5 cm referral, &gt; 5 cm urgent. Alternative: referral via primary care to action, with clear recommendation (unless &gt; 5 cm — keep within programme / secondary care).</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'breast',cat:'other',name:'Breast lesions',rel:'Moderate',
+    report:'<p>Report size, site, calcification, density, and interval change.</p>',
+    mgmt:'<p>Refer any breast lesion (via SRM) that is <strong>not</strong> clearly benign — i.e. stable, well-defined margins, or multiple — to the breast service unless already known.</p>',
+    pathway:'<p>Direct referral to breast service.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'liver',cat:'abdominal',name:'Liver or splenic lesions',rel:'Poor',
+    report:'<p>Report size and attenuation. Benign features: sharp margin, homogeneous low attenuation (&lt; 20 HU).</p><p>Focal fatty sparing or deposition does not require further investigation or reporting. Incompletely imaged lesions or lesions too small to characterise should not by themselves prompt further investigation.</p>',
+    mgmt:'<p>Lesions &lt; 1 cm: no further investigation. Lesions ≥ 1 cm with no benign features: referral via SRM — refer malignant lesions to appropriate cancer pathway; consider CE CT / US / MRI for indeterminate lesions.</p>',
+    pathway:'<p>Routing via SRM to the appropriate cancer or hepatology pathway.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'renal',cat:'abdominal',name:'Renal lesions',rel:'Poor',
+    report:'<p>Report size, site, attenuation, calcification. Classify as malignant / indeterminate / benign / unable to evaluate.</p><p>Homogeneous hypodense cysts do not require further investigation. Incompletely imaged or sub-cm lesions should not by themselves prompt work-up.</p>',
+    mgmt:'<p>Refer to SRM: soft tissue, hyperdense or mixed-density renal mass &gt; 1 cm; masses &gt; 3 cm; lesions that show growth on serial imaging if available.</p>',
+    pathway:'<p>Via SRM to urology / cancer pathway as appropriate.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'bone',cat:'other',name:'Bone abnormalities',rel:'Moderate',
+    report:'<p>Report &gt; 50% loss of vertebral height in any one vertebra. Report lesions suspicious for malignancy.</p>',
+    mgmt:'<p>Malignant-suspicious: refer to SRM. &gt;50% vertebral height loss: refer via SRM to primary care or osteoporosis service.</p>',
+    pathway:'<p>Direct referral to osteoporosis service preferred; alternative is referral to primary care.</p>',
+    resp:'RC / SC'
+  },
+  {
+    id:'adrenal',cat:'abdominal',name:'Adrenal lesions',rel:'Moderate',
+    report:'<p>Report size and attenuation. Lesions &lt; 10 mm or &lt; 10 HU density and 10–40 mm diameter do not require reporting.</p>',
+    mgmt:'<p>Refer to SRM: lesions 10–40 mm with attenuation &gt; 10 HU, or lesions growing on serial scans. Refer all lesions &gt; 40 mm.</p>',
+    pathway:'<p>Via SRM to endocrine / urology.</p>',
+    resp:'RC / SC'
+  }
+];
+
+const ifList = document.getElementById('if-list');
+function relClass(r){return r==='Good'?'rel-good':r==='Moderate'?'rel-mod':'rel-poor'}
+function catLabel(c){return {pulmonary:'Pulmonary',cardiac:'Cardiac/vascular',mediastinal:'Mediastinal/pleural',abdominal:'Abdominal',other:'Other'}[c]||c}
+function renderFindings(filter='all', search=''){
+  const q = search.trim().toLowerCase();
+  const out = FINDINGS.filter(f=>{
+    if(filter!=='all' && f.cat!==filter) return false;
+    if(!q) return true;
+    return f.name.toLowerCase().includes(q) ||
+           f.report.toLowerCase().includes(q) ||
+           f.mgmt.toLowerCase().includes(q);
+  });
+  if(!out.length){ifList.innerHTML = `<div class="card" style="text-align:center;color:var(--ink-faint)">No findings match your search.</div>`;return}
+  ifList.innerHTML = out.map(f=>`
+    <div class="if-item" data-id="${f.id}">
+      <button class="if-head">
+        <div class="if-head-main">
+          <div class="if-name">${f.name}</div>
+          <div class="if-meta">
+            <span class="cat-chip">${catLabel(f.cat)}</span>
+            <span class="${relClass(f.rel)}">Reliability: ${f.rel}</span>
+          </div>
+        </div>
+        <div class="if-chev">›</div>
+      </button>
+      <div class="if-body">
+        <h5>Radiology report</h5>
+        ${f.report}
+        <h5>Management</h5>
+        ${f.mgmt}
+        <h5>Pathway (Annex 3)</h5>
+        ${f.pathway}
+        <h5>Responsible</h5>
+        <p>${f.resp}</p>
+      </div>
+    </div>
+  `).join('');
+  ifList.querySelectorAll('.if-head').forEach(h=>h.addEventListener('click',()=>{
+    h.parentElement.classList.toggle('open');
+  }));
+}
+document.getElementById('if-search').addEventListener('input',e=>{
+  const activeCat = document.querySelector('#if-filters button.active').dataset.cat;
+  renderFindings(activeCat, e.target.value);
+});
+document.querySelectorAll('#if-filters button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#if-filters button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  renderFindings(b.dataset.cat, document.getElementById('if-search').value);
+}));
+renderFindings();
+
+/* ==========================================
+   QUIZ
+   ========================================== */
+const QUIZ = [
+  {
+    scenario:"A 68-year-old enters the screening programme. Their baseline LDCT shows a single solid nodule in the right upper lobe with a volume of 145 mm³. Volumetric segmentation is judged reliable. Brock score is 4%.",
+    ask:"What is the appropriate management?",
+    opts:[
+      "Discharge to next screening round at 24 months",
+      "3-month LDCT; if stable, further LDCT a further 9 months later",
+      "Refer to suspected lung cancer pathway",
+      "12-month LDCT; if stable, further LDCT a further 12 months later"
+    ],
+    correct:1,
+    why:"A baseline solid nodule of 80 to &lt;300 mm³ with reliable volumetry falls into the indeterminate category. The pathway is 3-month LDCT; if stable, a further 9 months later (= 12 months from baseline). If stable at that point, discharge to the next screening round. The 12-month-then-12-month pathway applies to 5–6 mm nodules where volumetry is not possible."
+  },
+  {
+    scenario:"Baseline LDCT in a 61-year-old shows a 9 mm solid nodule in the left lower lobe. Volumetric segmentation fails repeatedly because the nodule abuts the pleura. The reader falls back to maximum diameter. Brock score using the diameter is 12%.",
+    ask:"What should happen next?",
+    opts:[
+      "3-month LDCT surveillance",
+      "12-month LDCT surveillance",
+      "Refer to the lung cancer pathway via the Screening Review Meeting",
+      "Refer to primary care for symptom review"
+    ],
+    correct:2,
+    why:"For a solid nodule ≥ 8 mm (volumetry not possible) with Brock ≥ 10%, the table specifies referral. The combination of size threshold and Brock score mandates referral, usually progressing to PET-CT via the SRM."
+  },
+  {
+    scenario:"A 70-year-old is being reported on their 24-month incident round scan. A known solid nodule (present at baseline, volume 98 mm³ then) now measures 110 mm³ with reliable volumetry.",
+    ask:"Is this considered stable?",
+    opts:[
+      "No — any increase mandates referral",
+      "Yes — volume change is less than 25% and the nodule is stable",
+      "No — increase of more than 10 mm³ is significant",
+      "Can't tell — recalculate using diameter"
+    ],
+    correct:1,
+    why:"Stability for a solid nodule with reliable volumetry is defined as &lt;25% volume change from the nodule's first occurrence. 98 → 110 mm³ is about a 12% increase, which is within the margin of inter-scan variation. A stable nodule that has completed the minimum surveillance period can be discharged to the next screening round."
+  },
+  {
+    scenario:"On reviewing a baseline scan, you identify severe emphysema (≥50%) in a 64-year-old current smoker with no known COPD diagnosis.",
+    ask:"What is the correct action per the incidental findings protocol?",
+    opts:[
+      "Do not report — emphysema is expected in smokers",
+      "Refer directly to secondary care respiratory clinic",
+      "Report and send standard letter informing participant; recommend they seek advice from primary care if symptomatic; reinforce smoking cessation",
+      "Refer to lung cancer MDT because of the cancer risk"
+    ],
+    correct:2,
+    why:"Report moderate-to-severe emphysema and inform the participant by standard letter, recommending they seek primary-care advice <em>if symptomatic</em>. Do not refer if they already have a COPD diagnosis or are asymptomatic. Smoking cessation is offered to all current smokers anyway but is especially emphasised for moderate-to-severe emphysema."
+  },
+  {
+    scenario:"Incidentally you notice a 4.3 cm infrarenal abdominal aortic aneurysm.",
+    ask:"What is the correct management?",
+    opts:[
+      "No action — below 5 cm threshold",
+      "Refer to vascular team for surveillance",
+      "Urgent referral to vascular team",
+      "Refer to primary care only"
+    ],
+    correct:1,
+    why:"AAA 3–5 cm warrants standard referral to the vascular team for surveillance. Urgent referral is reserved for &gt; 5 cm. 'No action' is incorrect — all AAA are reportable."
+  },
+  {
+    scenario:"A growing solid nodule on a 3-month surveillance scan has a calculated VDT of 520 days.",
+    ask:"What is the recommended action?",
+    opts:[
+      "Return to annual LDCT — growth is too slow to act on",
+      "Immediate biopsy or resection",
+      "Surveillance or biopsy / resection depending on participant preference",
+      "Refer to palliative care"
+    ],
+    correct:2,
+    why:"VDT 400–600 days is the intermediate band where either surveillance or biopsy / resection are acceptable, based on participant preference after discussion. VDT &gt; 600 days → return to annual LDCT. VDT &lt; 400 days → investigate further."
+  },
+  {
+    scenario:"Baseline LDCT shows a single pure ground-glass nodule measuring 8 mm maximum diameter, no solid component.",
+    ask:"How should this be managed?",
+    opts:[
+      "Refer immediately — GGN ≥ 5 mm always warrants referral",
+      "3-month LDCT; if it persists, reassess malignancy risk and follow through 9-, 12-, 24-, and 48-month scans",
+      "Discharge — ground glass is benign",
+      "Annual LDCT indefinitely"
+    ],
+    correct:1,
+    why:"GGNs ≥ 5 mm at baseline follow the prolonged-surveillance pathway: 3 months, then reassess malignancy risk (size, morphology, density, Brock). If low risk, further scans at 9 months, then 12, 24, and 48 months. Pure GGNs have excellent prognosis and this lengthy observation minimises over-diagnosis."
+  },
+  {
+    scenario:"On incident-round scan, a <strong>new</strong> discrete solid nodule is present that was not on the previous LDCT. It measures 42 mm³ with reliable volumetry and is not obviously inflammatory.",
+    ask:"Next step?",
+    opts:[
+      "Discharge — below 80 mm³ threshold",
+      "3-month surveillance LDCT",
+      "Refer to suspected lung cancer pathway",
+      "Repeat scan in 6 weeks to exclude infection"
+    ],
+    correct:1,
+    why:"New nodules have lower size thresholds than baseline nodules. A new solid nodule of 30 to &lt;300 mm³ → 3-month surveillance. (Below 30 mm³ or below 4 mm → discharge. ≥ 300 mm³ or ≥ 8 mm → refer.)"
+  },
+  {
+    scenario:"The aortic valve shows moderate calcification on visual scoring. The participant has no prior echocardiogram.",
+    ask:"What is the correct pathway?",
+    opts:[
+      "No action — AVC is an expected finding",
+      "Refer for echocardiography via SRM",
+      "Urgent cardiology referral",
+      "Report to GP only with no further action"
+    ],
+    correct:1,
+    why:"Moderate or severe AVC warrants echocardiographic evaluation, usually arranged in secondary care via SRM. Isolated specks of calcification do not need reporting. Only significant aortic valve disease demonstrated on echo is referred on to cardiology."
+  },
+  {
+    scenario:"A 60-year-old presents for their lung health check with new persistent haemoptysis over 4 weeks. Their PLCO risk is 2.4%, above threshold.",
+    ask:"What is the correct action?",
+    opts:[
+      "Book a standard LDCT within 56 days",
+      "Proceed directly to urgent contrast-enhanced CT of neck, thorax and abdomen",
+      "Refer back to GP for investigation",
+      "Defer LDCT until symptoms resolve"
+    ],
+    correct:1,
+    why:"Persistent haemoptysis (along with SVCO, stridor, or cord-compression features) mandates urgent contrast-enhanced CT of neck, thorax and abdomen — not a standard LDCT. Symptomatic presentations bypass the standard screening pathway."
+  },
+  {
+    scenario:"An incident-round scan shows a known 9 mm solid nodule that was stable at the baseline, 3-month, and 12-month scans. On this 24-month scan it is again unchanged.",
+    ask:"Action?",
+    opts:[
+      "Another 12-month surveillance scan — nodules ≥ 8 mm always need long follow-up",
+      "Discharge to the next screening round — minimum surveillance period completed and nodule is stable",
+      "Refer for biopsy — size alone mandates tissue",
+      "Repeat at 3 months because it was once above threshold"
+    ],
+    correct:1,
+    why:"Once minimum surveillance has been completed (≥ 12 months for reliably volumetric nodules, ≥ 24 months where volumetry is not possible) and the nodule remains stable, it can be discharged to the next screening round. Continued surveillance beyond this adds no benefit."
+  },
+  {
+    scenario:"On a baseline scan you identify a homogeneous 14 mm hypodense renal cyst with a sharp margin and no mural nodularity or septation.",
+    ask:"How should this be managed?",
+    opts:[
+      "Refer to urology via SRM",
+      "No further investigation — appearance is benign",
+      "Repeat CT in 6 months",
+      "Ultrasound follow-up through primary care"
+    ],
+    correct:1,
+    why:"Homogeneous hypodense cysts with benign features do not require further investigation. The renal-lesion pathway only warrants SRM referral for soft-tissue/hyperdense/mixed-density masses &gt; 1 cm, masses &gt; 3 cm, or lesions that show growth on serial imaging."
+  },
+  {
+    scenario:"Baseline LDCT in a 72-year-old shows a dominant subpleural 11 mm solid nodule. Volumetric segmentation fails (software measures span greatly on repeat attempts). Using diameter-based Brock score the risk is 6%.",
+    ask:"What is the correct management?",
+    opts:[
+      "Refer immediately — ≥8mm is always a referral",
+      "3-month LDCT, then if stable 9 months, then if stable 12 months, then discharge",
+      "12-month LDCT then 24-month LDCT",
+      "Repeat baseline scan in 6 weeks"
+    ],
+    correct:1,
+    why:"For a solid nodule ≥ 8 mm where volumetry is not possible and Brock is &lt;10%, the pathway is 3 months → 9 months → 12 months → discharge (a longer total surveillance of 24 months compared to the volumetric pathway, because growth assessment is less precise)."
+  },
+  {
+    scenario:"A 65-year-old books for their 3-month follow-up LDCT. On the day of the appointment they are coughing, febrile and report purulent sputum for 5 days.",
+    ask:"What should happen?",
+    opts:[
+      "Proceed with the scan — respiratory infections don't alter findings",
+      "Cancel the scan permanently and refer to GP",
+      "Defer the scan by 6 weeks to allow resolution of infection",
+      "Proceed and flag at SRM"
+    ],
+    correct:2,
+    why:"Respiratory infection at appointment triggers a 6-week deferral to avoid false-positive findings. Evidence of infection includes cough, new/changed sputum, breathlessness, wheeze, chest pain, fever, sore throat, coryza."
+  },
+  {
+    scenario:"A participant had a contrast-enhanced thoracic CT 8 months ago as part of investigation for vague chest pain. Images are available and meet the LCSP reconstruction parameters. They are now eligible and have reached the top of the screening list.",
+    ask:"What should happen?",
+    opts:[
+      "Proceed with LDCT now — their risk is current",
+      "Defer the LDCT appointment until 12 months after the previous CT, provided inclusion/exclusion criteria still met",
+      "Exclude the participant from the programme permanently",
+      "Review the previous CT and report as if it were the baseline LCSP scan"
+    ],
+    correct:1,
+    why:"If a full thoracic CT meeting the programme's reconstruction parameters has been performed within the last 12 months, the LDCT is deferred until 12 months have elapsed. The participant is not excluded from the programme."
+  },
+  {
+    scenario:"A 68-year-old attends for baseline LDCT. The report shows coronary artery calcification graded as severe on visual scoring. The participant is not currently on any cardiovascular medication and has no known heart disease.",
+    ask:"What is the correct action?",
+    opts:[
+      "Urgent cardiology referral",
+      "No action — CAC is not clinically significant",
+      "Letter to participant about finding and need for primary-care review, consideration of lipid-lowering therapy, and lifestyle change",
+      "Refer for CT coronary angiogram via SRM"
+    ],
+    correct:2,
+    why:"Severe CAC warrants a letter to the participant prompting primary-care review — consider lipid-lowering therapy, lifestyle change, seek advice for symptoms. No direct referral. The exception is if the participant is already on lipid-lowering therapy or has known IHD, in which case no further action is needed."
+  },
+  {
+    scenario:"Baseline LDCT identifies interstitial lung abnormalities estimated to involve 14% of both lungs, with a reticular pattern.",
+    ask:"Next step?",
+    opts:[
+      "No action — ILA is incidental and benign",
+      "Return to next screening round — the programme will flag progression",
+      "Refer for specialist review via SRM — ILA &gt;10% threshold met",
+      "Repeat LDCT in 3 months"
+    ],
+    correct:2,
+    why:"ILA involving more than 10% of either whole lung should be referred for specialist review, via the SRM and on to the local ILD service. Below 10% the programme will flag progression on subsequent scans."
+  },
+  {
+    scenario:"Follow-up LDCT at 12 months for a known indeterminate solid nodule. The volume has changed from 95 mm³ at baseline to 180 mm³ now, with reliable volumetry on both scans. Calculated VDT is approximately 380 days.",
+    ask:"Next step?",
+    opts:[
+      "Continue routine surveillance — within expected variation",
+      "Return to annual LDCT",
+      "Offer surveillance or biopsy/resection per participant preference",
+      "Further investigation via SRM (PET-CT, biopsy, or resection) provided the nodule is a sensible size to intervene"
+    ],
+    correct:3,
+    why:"VDT &lt; 400 days triggers further investigation (PET-CT, percutaneous biopsy, lung resection) — provided the nodule is large enough for meaningful intervention. VDT 400–600 is the shared-decision band; VDT &gt;600 returns to annual LDCT."
+  },
+  {
+    scenario:"A 58-year-old attends their lung health check. Their PLCO risk is 1.8% (above threshold), but they mention they have metastatic melanoma diagnosed 2 years ago, currently on treatment, having annual chest CT scans as part of routine oncology surveillance.",
+    ask:"Are they eligible for LDCT?",
+    opts:[
+      "Yes — metastatic melanoma is an exception that does not exclude from screening",
+      "No — all metastatic cancer excludes the participant",
+      "Yes, but only after discussion with the oncology team",
+      "No — but re-invite in 5 years"
+    ],
+    correct:0,
+    why:"The exclusion is 'metastatic cancer but NOT metastatic prostate cancer, metastatic breast cancer or metastatic melanoma' — provided these participants are already receiving annual diagnostic chest CT scans. In this case the melanoma participant is already having annual CTs, so they are not excluded."
+  },
+  {
+    scenario:"Following a suspicious nodule referral, FDG-PET/CT shows high uptake and the calculated Herder risk score is 72%. The nodule is 18 mm solid, in the right lower lobe.",
+    ask:"Where should this be managed?",
+    opts:[
+      "Within the screening programme with close surveillance",
+      "Primary care with GP follow-up",
+      "Within the respiratory service — Herder is high",
+      "Referred back to baseline annual LDCT"
+    ],
+    correct:2,
+    why:"Nodules with Herder &gt; 10% post-PET may be managed in respiratory clinic or within the programme. Higher Herder scores — as in this case — should be managed within the respiratory service."
+  },
+  {
+    scenario:"An incident round CT shows 8 mm of adrenal enlargement on the right, attenuation 4 HU, homogeneous.",
+    ask:"Action?",
+    opts:[
+      "Refer via SRM to endocrinology",
+      "Do not report — does not meet reporting criteria",
+      "Urgent referral",
+      "Further evaluation with dedicated adrenal protocol CT"
+    ],
+    correct:1,
+    why:"Adrenal lesions &lt; 10 mm do not require reporting. Lesions 10–40 mm with density &lt; 10 HU also do not require reporting. Referral is reserved for 10–40 mm lesions with attenuation &gt; 10 HU, growing lesions, or lesions &gt; 40 mm."
+  },
+  {
+    scenario:"LDCT reveals a mediastinal mass measuring 45 × 38 mm in the anterior mediastinum, solid, heterogeneous, non-cystic.",
+    ask:"Action?",
+    opts:[
+      "Refer to SRM — all non-cystic mediastinal masses are referred",
+      "Report with 6-week follow-up",
+      "No action if the participant is asymptomatic",
+      "Urgent lung cancer pathway referral"
+    ],
+    correct:0,
+    why:"All non-cystic mediastinal lesions should be referred to SRM. Options for management include surveillance within the screening programme or work-up, depending on clinical assessment. Report size, morphology, position, density/texture."
+  },
+  {
+    scenario:"On LDCT you identify a focal area of osteolysis in a thoracic vertebra with soft-tissue extension, suspicious for a metastasis. The participant has no prior cancer history.",
+    ask:"What is the correct pathway?",
+    opts:[
+      "Refer directly to the osteoporosis service",
+      "Refer via SRM — lesion suspicious for malignancy",
+      "GP letter only",
+      "No action, note in report"
+    ],
+    correct:1,
+    why:"Vertebral lesions suspicious for malignancy are referred via SRM. (&gt;50% vertebral height loss from osteoporosis follows a different route: SRM → osteoporosis service or primary care.)"
+  },
+  {
+    scenario:"A participant has moderate aortic valve calcification on LDCT. They have no previous echocardiogram and no cardiology input.",
+    ask:"What should happen?",
+    opts:[
+      "Urgent cardiology referral via SRM",
+      "No action — AVC is benign",
+      "Request echocardiography via secondary care (through SRM or primary care); onward cardiology referral only if significant valve disease is demonstrated",
+      "Repeat LDCT in 6 months"
+    ],
+    correct:2,
+    why:"Moderate or severe AVC warrants echocardiography, usually arranged in secondary care via SRM (or through primary care as an alternative). Cardiology referral is triggered only if the echo shows significant aortic valve disease. The participant may simply be added to the local valve register."
+  },
+  {
+    scenario:"You are reporting a baseline LDCT and identify three solid nodules: a 15 mm RUL nodule (volume 280 mm³), a 6 mm LLL nodule (volume 95 mm³), and a 4 mm RML nodule (volume 35 mm³). All have reliable volumetry.",
+    ask:"Which nodules must be recorded on the structured report?",
+    opts:[
+      "All three — every visible nodule must be reported",
+      "Only the largest — single-nodule reporting is standard",
+      "At least the two largest (including the largest overall); the 4 mm is below the 5 mm / 80 mm³ reporting threshold so can be omitted",
+      "Only the 15 mm nodule as it is the only one likely to require action"
+    ],
+    correct:2,
+    why:"The nodule characterisation threshold is ≥ 5 mm or ≥ 80 mm³. Where multiple nodules are detected, at least two nodules should be recorded, including the largest, and where possible all nodules &gt; 200 mm³. The 4 mm / 35 mm³ nodule is below threshold. The 15 mm nodule will drive management (3-month surveillance given Brock-dependent outcome); the 6 mm / 95 mm³ nodule is indeterminate and must also be recorded and tracked."
+  }
+];
+
+let quizIdx = 0;
+let quizScore = 0;
+let quizAnswered = false;
+const quizRoot = document.getElementById('quiz-root');
+
+function renderQuiz(){
+  if(quizIdx >= QUIZ.length){
+    const pct = Math.round(100*quizScore/QUIZ.length);
+    quizRoot.innerHTML = `
+      <div class="quiz-stage quiz-summary">
+        <div class="big-score">${quizScore}<small>/${QUIZ.length}</small></div>
+        <p><strong style="color:var(--ink)">${pct}% — ${pct>=80?'Strong performance.':pct>=60?'Decent — review the ones you missed.':'Worth revisiting the nodule and IF tabs before reporting live.'}</strong></p>
+        <p>You've worked through ${QUIZ.length} scenarios covering baseline and incident-round nodules, sub-solid pathways, VDT decisions, and incidental findings.</p>
+        <div class="btn-row" style="justify-content:center;margin-top:20px">
+          <button class="btn btn-primary" id="quiz-restart">↻ Start over</button>
+          <button class="btn" data-go="reference">Quick reference</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('quiz-restart').addEventListener('click',()=>{quizIdx=0;quizScore=0;quizAnswered=false;renderQuiz()});
+    document.querySelectorAll('#quiz-root [data-go]').forEach(b=>b.addEventListener('click',()=>goTo(b.dataset.go)));
+    return;
+  }
+  const q = QUIZ[quizIdx];
+  quizAnswered = false;
+  quizRoot.innerHTML = `
+    <div class="quiz-stage">
+      <div class="quiz-meta">
+        <span>Case ${quizIdx+1} of ${QUIZ.length}</span>
+        <span class="q-score">Score: ${quizScore}</span>
+      </div>
+      <div class="quiz-scenario">${q.scenario}</div>
+      <div class="quiz-ask">${q.ask}</div>
+      <div class="quiz-opts">
+        ${q.opts.map((o,i)=>`<button class="quiz-opt" data-i="${i}">${o}</button>`).join('')}
+      </div>
+      <div id="quiz-feedback-host"></div>
+      <div class="quiz-nav" id="quiz-nav"></div>
+    </div>
+  `;
+  quizRoot.querySelectorAll('.quiz-opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(quizAnswered) return;
+      quizAnswered = true;
+      const i = parseInt(btn.dataset.i);
+      const correct = i === q.correct;
+      if(correct) quizScore++;
+      quizRoot.querySelectorAll('.quiz-opt').forEach((b,bi)=>{
+        b.disabled = true;
+        if(bi === q.correct) b.classList.add('correct');
+        else if(bi === i) b.classList.add('wrong');
+      });
+      document.getElementById('quiz-feedback-host').innerHTML = `
+        <div class="quiz-feedback">
+          <strong>${correct?'Correct':'The correct answer is: '+q.opts[q.correct]}</strong>
+          ${q.why}
+        </div>
+      `;
+      document.getElementById('quiz-nav').innerHTML = `
+        <button class="btn btn-primary" id="quiz-next">${quizIdx === QUIZ.length-1 ? 'See results →' : 'Next case →'}</button>
+      `;
+      document.getElementById('quiz-next').addEventListener('click',()=>{
+        quizIdx++; renderQuiz();
+      });
+      // update score display
+      quizRoot.querySelector('.q-score').textContent = `Score: ${quizScore}`;
+    });
+  });
+}
+renderQuiz();
+
+/* ==========================================
+   FLASHCARDS
+   Each card: {id, deck, q, a, source}
+   Decks: baseline-nodule, incident-nodule, subsolid, vdt, incidental, numbers
+   ========================================== */
+const FLASHCARDS = [
+  /* ---------- BASELINE NODULES ---------- */
+  {
+    id:'b-solid-sub80', deck:'baseline-nodule',
+    q:'<span class="fc-label-inline">Baseline round</span>Solid nodule, reliable volumetry, volume &lt; 80 mm³.',
+    a:'<p><strong>Discharge to next screening round.</strong></p><p>Below the characterisation threshold. No surveillance scan in this round. Next scan is the 24-month screening round.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'b-solid-80-300', deck:'baseline-nodule',
+    q:'<span class="fc-label-inline">Baseline round</span>Solid nodule, reliable volumetry, volume 80 to &lt; 300 mm³.',
+    a:'<p><strong>3-month LDCT.</strong> If stable, a further 9 months (= 12 months from baseline). If stable then, discharge to next screening round.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'b-solid-300-brock-low', deck:'baseline-nodule',
+    q:'<span class="fc-label-inline">Baseline round</span>Solid nodule ≥ 300 mm³ (reliable volumetry), Brock &lt; 10%.',
+    a:'<p><strong>3-month LDCT.</strong> If stable, a further 9 months, then discharge if stable.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'b-solid-300-brock-high', deck:'baseline-nodule',
+    q:'<span class="fc-label-inline">Baseline round</span>Solid nodule ≥ 300 mm³ (reliable volumetry), Brock ≥ 10%.',
+    a:'<p><strong>Refer</strong> to suspected lung cancer pathway via the SRM. Usually proceeds to PET-CT.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'b-solid-diam-sub5', deck:'baseline-nodule',
+    q:'<span class="fc-label-inline">Baseline · no volumetry</span>Solid nodule &lt; 5 mm max diameter.',
+    a:'<p><strong>Discharge to next screening round.</strong> Below the threshold for characterisation.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'b-solid-diam-5-6', deck:'baseline-nodule',
+    q:'<span class="fc-label-inline">Baseline · no volumetry</span>Solid nodule 5 to &lt; 6 mm max diameter.',
+    a:'<p><strong>12-month LDCT.</strong> If stable, a further 12 months (= 24 months from baseline). Discharge if stable.</p><p>No volumetry → less precise growth assessment → longer intervals chosen.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'b-solid-diam-6-8', deck:'baseline-nodule',
+    q:'<span class="fc-label-inline">Baseline · no volumetry</span>Solid nodule 6 to &lt; 8 mm max diameter.',
+    a:'<p><strong>3-month LDCT</strong> → if stable, a further 9 months → if stable, a further 12 months → discharge to next screening round.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'b-solid-diam-8-brock-low', deck:'baseline-nodule',
+    q:'<span class="fc-label-inline">Baseline · no volumetry</span>Solid nodule ≥ 8 mm max diameter, Brock &lt; 10%.',
+    a:'<p><strong>3-month LDCT</strong> → if stable, a further 9 months → if stable, a further 12 months → discharge.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'b-solid-diam-8-brock-high', deck:'baseline-nodule',
+    q:'<span class="fc-label-inline">Baseline · no volumetry</span>Solid nodule ≥ 8 mm max diameter, Brock ≥ 10%.',
+    a:'<p><strong>Refer</strong> to suspected lung cancer pathway via SRM.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'b-no-nodule', deck:'baseline-nodule',
+    q:'<span class="fc-label-inline">Baseline round</span>No nodules, or all nodules below threshold.',
+    a:'<p><strong>Discharge to next screening round.</strong> Next LDCT at 24 months.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'volumetry-check', deck:'baseline-nodule',
+    q:'When is it acceptable to use diameter instead of volume for a solid nodule?',
+    a:'<p>When volumetric segmentation is <strong>not possible</strong> or is visually judged to be <strong>unreliable</strong> — for example, sub-pleural, juxta-vascular, or irregularly shaped nodules where the software cannot cleanly segment.</p><p>Use the <strong>maximum axial diameter</strong> on lung windows, excluding any spiculation. Avoid manually adjusting volumetric analysis as this introduces unquantified variability.</p>',
+    source:'Std Protocol §4.7'
+  },
+
+  /* ---------- SUB-SOLID ---------- */
+  {
+    id:'ss-ggn-sub5', deck:'subsolid',
+    q:'<span class="fc-label-inline">Baseline</span>Pure ground-glass nodule &lt; 5 mm max diameter.',
+    a:'<p><strong>Discharge to next screening round.</strong></p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'ss-ggn-5', deck:'subsolid',
+    q:'<span class="fc-label-inline">Baseline</span>Pure ground-glass nodule ≥ 5 mm max diameter.',
+    a:'<p><strong>3-month LDCT.</strong> If it persists, assess malignancy risk (size, morphology, density, Brock score).</p><p>If low risk: further scans at <span class="fc-code">9 mo</span>, <span class="fc-code">12 mo</span>, <span class="fc-code">24 mo</span>, <span class="fc-code">48 mo</span>. If stable at each, discharge.</p><p>Pure GGNs have excellent prognosis — long observation minimises over-diagnosis.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'ss-psn-sub5', deck:'subsolid',
+    q:'<span class="fc-label-inline">Baseline</span>Part-solid nodule with solid component &lt; 5 mm.',
+    a:'<p><strong>Discharge to next screening round.</strong> The solid component threshold (not the whole-nodule size) drives this decision.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'ss-psn-5', deck:'subsolid',
+    q:'<span class="fc-label-inline">Baseline</span>Part-solid nodule with solid component ≥ 5 mm.',
+    a:'<p><strong>3-month LDCT.</strong> If it persists, assess risk using size and growth of the <em>solid component</em>, morphology, density, Brock score.</p><p>Prolonged follow-up: 9 mo, 12 mo, 24 mo, 48 mo.</p><p>Any growth of solid component ≥ 2 mm, change in morphology, or Brock ≥ 10% → consider histology.</p>',
+    source:'Std Protocol, Table 4 & §6.1'
+  },
+  {
+    id:'ss-psn-growth', deck:'subsolid',
+    q:'A known part-solid nodule shows the solid component has grown 3 mm since last scan. What next?',
+    a:'<p><strong>Consider histological diagnosis and definitive management.</strong> Any growth ≥ 2 mm in solid component, change in morphology, or Brock &gt; 10% should prompt consideration of histology.</p><p>However, PSNs have better prognosis than solid cancers, so further observation may still be appropriate — discuss at SRM.</p>',
+    source:'Std Protocol §6.1.1'
+  },
+  {
+    id:'ss-ggn-change', deck:'subsolid',
+    q:'A pure ground-glass nodule has developed a new 2 mm solid component. What next?',
+    a:'<p>Any <strong>change in morphology</strong> or appearance of a solid component — as well as Brock &gt; 10% — should prompt consideration of further imaging follow-up or histological diagnosis.</p><p>Good prognosis overall, so watch for over-diagnosis. Discuss at SRM.</p>',
+    source:'Std Protocol §6.1.1'
+  },
+  {
+    id:'ss-stable-def', deck:'subsolid',
+    q:'How is "stable" defined for a sub-solid nodule?',
+    a:'<p><strong>&lt; 2 mm change</strong> in maximum diameter of the entire nodule, or of the solid component if present.</p>',
+    source:'Std Protocol, Table 4 notes'
+  },
+
+  /* ---------- INCIDENT ROUND ---------- */
+  {
+    id:'i-known-stable', deck:'incident-nodule',
+    q:'<span class="fc-label-inline">Incident round</span>Known solid nodule, stable compared with prior.',
+    a:'<p><strong>Discharge to next screening round</strong> — provided the minimum surveillance period is complete:</p><ul><li>Reliable volumetry: ≥ 12 months of follow-up</li><li>No volumetry: ≥ 24 months of follow-up</li></ul>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'i-stable-def', deck:'incident-nodule',
+    q:'How is "stable" defined for a solid nodule with reliable volumetry?',
+    a:'<p><strong>Volume change &lt; 25%</strong> relative to the nodule\'s first occurrence.</p><p>A less-than-25% increase may simply be within the margin of inter-scan variation.</p>',
+    source:'Std Protocol §4.7.2 & Table 4'
+  },
+  {
+    id:'i-stable-def-diam', deck:'incident-nodule',
+    q:'How is "stable" defined for a solid nodule where volumetry is unreliable?',
+    a:'<p><strong>&lt; 2 mm</strong> change in maximum diameter.</p>',
+    source:'Std Protocol, Table 4 notes'
+  },
+  {
+    id:'i-new-solid-sub30', deck:'incident-nodule',
+    q:'<span class="fc-label-inline">Incident · new nodule</span>New discrete solid nodule, volume &lt; 30 mm³ (or &lt; 4 mm).',
+    a:'<p><strong>Discharge to next screening round.</strong> New nodules have lower size thresholds than baseline nodules.</p>',
+    source:'Std Protocol, Table 4 & §4.6.4'
+  },
+  {
+    id:'i-new-solid-vol-30-300', deck:'incident-nodule',
+    q:'<span class="fc-label-inline">Incident · new nodule</span>New discrete solid nodule, volume 30 to &lt; 300 mm³.',
+    a:'<p><strong>3-month LDCT.</strong></p><ul><li>If resolves → discharge to next screening round</li><li>If persists but stable → a further 9 months; if stable, discharge</li></ul>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'i-new-solid-diam-4-8', deck:'incident-nodule',
+    q:'<span class="fc-label-inline">Incident · new · no volumetry</span>New discrete solid nodule, 4 to &lt; 8 mm diameter.',
+    a:'<p><strong>3-month LDCT.</strong></p><ul><li>If resolves → discharge</li><li>If persists but stable → a further 9 months → then a further 12 months; if stable throughout, discharge</li></ul>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'i-new-solid-large', deck:'incident-nodule',
+    q:'<span class="fc-label-inline">Incident · new nodule</span>New discrete solid nodule ≥ 300 mm³ or ≥ 8 mm.',
+    a:'<p><strong>Refer.</strong> Size alone triggers referral for new nodules at these thresholds.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'i-inflammatory', deck:'incident-nodule',
+    q:'A new nodule appears on incident CT but looks inflammatory (tree-in-bud pattern, lobular morphology). Action?',
+    a:'<p>Radiologists should use clinical discretion to <strong>dismiss overtly inflammatory nodules</strong>, especially ground-glass nodules, even if flagged by CAD.</p><p>CAD is an aid only — the radiologist decides final disposition. Only discrete non-inflammatory nodules should be designated for follow-up.</p>',
+    source:'Std Protocol, Table 4 notes & §4.6.5'
+  },
+
+  /* ---------- VDT / RISK ---------- */
+  {
+    id:'vdt-slow', deck:'vdt',
+    q:'Growing solid nodule, confirmed VDT &gt; 600 days. Action?',
+    a:'<p><strong>Return to annual LDCT.</strong> Slow growth — no urgent investigation needed.</p>',
+    source:'Std Protocol §6.1.1'
+  },
+  {
+    id:'vdt-medium', deck:'vdt',
+    q:'Growing solid nodule, VDT 400 – 600 days. Action?',
+    a:'<p><strong>Surveillance OR biopsy / resection</strong>, depending on participant preference after discussion.</p><p>Review at SRM.</p>',
+    source:'Std Protocol §6.1.1'
+  },
+  {
+    id:'vdt-fast', deck:'vdt',
+    q:'Growing solid nodule, VDT &lt; 400 days. Action?',
+    a:'<p><strong>Investigate further</strong> (PET-CT, percutaneous biopsy, lung resection) per participant preference — <em>provided</em> the nodule has reached a size suitable for meaningful intervention.</p>',
+    source:'Std Protocol §6.1.1'
+  },
+  {
+    id:'vdt-calc', deck:'vdt',
+    q:'From which scan should VDT be calculated?',
+    a:'<p>VDT is calculated from the <strong>first appearance</strong> of the nodule in the programme.</p><p>Where multiple prior scans exist, calculate relative to the earliest (preferably baseline) LDCT with technically acceptable segmentation.</p>',
+    source:'Std Protocol §4.1.5 & §4.7.2.1'
+  },
+  {
+    id:'brock-threshold', deck:'vdt',
+    q:'What is the Brock score threshold that triggers referral for a large nodule?',
+    a:'<p><strong>≥ 10%.</strong></p><p>Large nodules (≥ 300 mm³ or ≥ 8 mm) with Brock ≥ 10% are referred directly. Nodules at the same size with Brock &lt; 10% enter 3-month surveillance instead.</p>',
+    source:'Std Protocol, Table 4'
+  },
+  {
+    id:'herder', deck:'vdt',
+    q:'What is the Herder score, and when is it used?',
+    a:'<p>The <strong>Herder</strong> tool is a validated risk calculator that incorporates <strong>FDG-PET</strong> findings. It is used <em>after</em> PET has been performed to stratify nodules.</p><p>Herder &gt; 10% post-PET: managed in respiratory clinic or within the screening programme.</p><p>Higher Herder scores → managed within respiratory service. Available in the BTS pulmonary nodule app.</p>',
+    source:'Std Protocol §6.1.2'
+  },
+  {
+    id:'brock-who', deck:'vdt',
+    q:'Who calculates the Brock score?',
+    a:'<p>Brock is <strong>calculated automatically</strong> by commercial lung cancer screening reporting software. The field is auto-populated on the proforma.</p>',
+    source:'QA Std Annex 1'
+  },
+
+  /* ---------- INCIDENTAL FINDINGS ---------- */
+  {
+    id:'if-emphysema', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>How do you classify emphysema extent, and when do you report?',
+    a:'<p>Classify as <strong>mild (&lt; 25%), moderate (25–50%), or severe (&gt; 50%)</strong>. Also record predominant type (centrilobular / paraseptal / panacinar).</p><p>Action is for moderate or severe. Inform participant by standard letter; recommend GP advice if symptomatic. Do not refer if COPD already known or LHC has established asymptomatic.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-ila', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>At what extent of ILA do you refer?',
+    a:'<p>Refer (via SRM) when ILA involves <strong>&gt; 10%</strong> of either whole lung — or any ILA that has progressed on follow-up imaging.</p><p>Report all ILA as an estimated percentage of the whole lungs. Below that, return to screen and rely on the screening programme to flag progression.</p>',
+    source:'QA Std Table 1 & Annex 3'
+  },
+  {
+    id:'if-bronchiectasis', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>When do you report bronchiectasis?',
+    a:'<p>Only when <strong>moderate or severe</strong>: airways &gt; 2× the diameter of the adjacent artery, involving more than one segment.</p><p>Refer via SRM for direct referral to respiratory / bronchiectasis service.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-rb', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Respiratory bronchiolitis on LDCT — report?',
+    a:'<p><strong>Do not report.</strong> Smoking cessation is offered to all current smokers anyway, so there is no separate pathway.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-consolidation', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Possibly inflammatory consolidation — next step?',
+    a:'<p>Classify consolidation as possibly inflammatory, possibly malignant, or inflammatory. Do not report minor areas or clearly-inflammatory tree-in-bud.</p><p>Inflammation more likely than cancer → refer to SRM, <strong>consider repeat CT at 6 weeks or 3 months</strong>. Cancer more likely → refer to SRM then urgent cancer pathway.</p>',
+    source:'QA Std Table 1 & notes'
+  },
+  {
+    id:'if-pleural', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>New pleural effusion or suspicious pleural thickening — action?',
+    a:'<p><strong>Refer directly via SRM</strong> for clinical assessment and work-up. Report size, laterality, and any malignant features.</p><p>Also use this category for unusual lesions such as schwannoma (describe in free text).</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-plaques', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Pleural plaques on LDCT — report?',
+    a:'<p>Generally <strong>do not report</strong>, or include only as a note.</p><p>Exception: <strong>Scotland and Northern Ireland</strong>, where compensation is available to people exposed to asbestos who have pleural plaques. In those jurisdictions, flag for SRM so participant can be informed.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-tb', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>LDCT features suggestive of active TB — action?',
+    a:'<p>Report if active TB is likely; include differential diagnoses. <strong>Direct referral to local TB service</strong> for assessment and contact tracing.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-bronch-wall', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Isolated bronchial wall thickening — report?',
+    a:'<p><strong>Do not report.</strong> No action required.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-cac', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>How do you report coronary artery calcification?',
+    a:'<p>Use <strong>simple visual scoring</strong>: mild / moderate / severe.</p><p>CV risk assessment reminder for moderate or severe (unless already on lipid-lowering therapy or known IHD).</p><p>No referral — letter to participant prompting primary care review. All participants should have a QRISK-type assessment regardless.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-avc', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Aortic valve calcification — when to report and refer?',
+    a:'<p>Report if <strong>moderate or severe</strong> (visual scoring). Isolated specks do not need reporting.</p><p>Refer via SRM for <strong>echocardiography</strong> — usually arranged in secondary care; onward to cardiology only if significant valve disease.</p>',
+    source:'QA Std Table 1 & Annex 3'
+  },
+  {
+    id:'if-aorta', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Thoracic aortic diameter — reporting threshold and action?',
+    a:'<p>Report if diameter <strong>≥ 45 mm</strong>. Do <em>not</em> report thoracic aortic calcification.</p><ul><li>45–50 mm: referral per local pathway; letter about finding and need to check BP</li><li>&gt; 50 mm: <strong>urgent referral</strong></li></ul>',
+    source:'QA Std Table 1 & Annex 3'
+  },
+  {
+    id:'if-mediastinal-mass', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>A non-cystic mediastinal mass — what do you do?',
+    a:'<p><strong>Refer all non-cystic mediastinal lesions to SRM.</strong> Report size, morphology, position, density/texture, and whether cystic.</p><p>Options include surveillance within the screening programme or work-up, depending on clinical assessment.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-mediastinal-nodes', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Reporting threshold for mediastinal / hilar lymphadenopathy?',
+    a:'<p>Report nodes <strong>≥ 15 mm short axis</strong>. Refer to SRM; manage within respiratory service if referral required.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-thyroid', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Which thyroid nodules get referred?',
+    a:'<p>Report nodules with <strong>suspicious features</strong> (lymphadenopathy, punctate microcalcification) or <strong>size ≥ 20 mm</strong> per local policy.</p><p>Refer to thyroid MDT via SRM. Reliability of detection is <strong>poor</strong> — LDCT is not optimised for thyroid assessment.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-cardiac-decomp', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Pericardial effusion on LDCT — action?',
+    a:'<p>Report <strong>moderate or large</strong> pericardial effusion, and features of significant cardiac decompensation.</p><p>Refer for echocardiography and clinical assessment via SRM or primary care. Urgent referral may be indicated for concerning features.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-oesophagus', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Oesophageal wall thickening — action?',
+    a:'<p>Report diffuse wall thickening or focal lesions. <strong>Refer for further assessment via SRM</strong>. Reliability of detection is moderate.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-aaa', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Abdominal aortic aneurysm — thresholds for referral?',
+    a:'<p>Report <strong>all AAA</strong>.</p><ul><li><strong>3–5 cm:</strong> standard vascular referral for surveillance</li><li><strong>&gt; 5 cm:</strong> urgent vascular referral</li></ul>',
+    source:'QA Std Table 1 & Annex 3'
+  },
+  {
+    id:'if-breast', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Which breast lesions seen on LDCT get referred?',
+    a:'<p>Refer (via SRM) any breast lesion that is <strong>NOT</strong> clearly benign — i.e. not stable, not well-defined, or not multiple — to the breast service, unless already known.</p><p>Report size, site, calcification, density, interval change.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-liver', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Liver lesion: which need further work-up?',
+    a:'<p>Benign features: sharp margin, homogeneous low attenuation (&lt; 20 HU). Focal fatty sparing/deposition: no further investigation.</p><ul><li><strong>&lt; 1 cm:</strong> no further investigation</li><li><strong>≥ 1 cm, no benign features:</strong> refer via SRM — malignant-appearing to cancer pathway; indeterminate to CE CT / US / MRI</li></ul><p>Incompletely imaged or tiny unclassifiable lesions should not by themselves prompt work-up.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-renal', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Which renal lesions need referral?',
+    a:'<p>Benign cysts (homogeneous hypodense) do <strong>not</strong> need further work-up.</p><p>Refer via SRM:</p><ul><li>Soft-tissue, hyperdense, or mixed-density renal mass &gt; 1 cm</li><li>Any mass &gt; 3 cm</li><li>Lesions that show growth on serial imaging</li></ul>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-bone', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Vertebral findings: what to report and how to route?',
+    a:'<p>Report <strong>&gt; 50% loss of vertebral height</strong> in any one vertebra. Report lesions suspicious for malignancy.</p><ul><li>Malignancy-suspicious lesions → SRM</li><li>&gt;50% vertebral height loss → SRM → osteoporosis service (preferred) or primary care</li></ul>',
+    source:'QA Std Table 1 & Annex 3'
+  },
+  {
+    id:'if-adrenal', deck:'incidental',
+    q:'<span class="fc-label-inline">Incidental finding</span>Adrenal lesion — reporting threshold?',
+    a:'<p>Lesions &lt; 10 mm, OR 10–40 mm with density &lt; 10 HU: <strong>do not require reporting</strong>.</p><p>Refer to SRM: lesions 10–40 mm with attenuation &gt; 10 HU, or lesions growing on serial scans. All lesions &gt; 40 mm: refer.</p>',
+    source:'QA Std Table 1'
+  },
+  {
+    id:'if-principle', deck:'incidental',
+    q:'What is the core principle of incidental finding reporting in the LCSP?',
+    a:'<p>Four rules:</p><ul><li>The finding should be <strong>clinically significant</strong></li><li>Clinically non-significant findings <strong>should not be communicated</strong> to GP or participant</li><li>There should be local agreement on the nature and benefit of the recommended interventions</li><li>Recommendations for clinical correlation should be specific and only made where there is potential for benefit</li></ul>',
+    source:'QA Std Annex 2'
+  },
+  {
+    id:'if-qa-rate', deck:'incidental',
+    q:'What is the QA Standard target for clinically significant incidental findings rate?',
+    a:'<p>Overall rate of clinically significant incidental findings should be <strong>&lt; 8%</strong>. NHSE Quality Assurance Standard.</p>',
+    source:'QA Std Annex 2'
+  },
+
+  /* ---------- KEY NUMBERS ---------- */
+  {
+    id:'num-ldct-timing', deck:'numbers',
+    q:'Timing window: LDCT after a positive risk assessment.',
+    a:'<p>Within <strong>56 days</strong> of the risk assessment.</p>',
+    source:'Std Protocol §3.2.5'
+  },
+  {
+    id:'num-surveillance-window', deck:'numbers',
+    q:'Timing window: surveillance scans (3 or 12 month).',
+    a:'<p>Up to <strong>28 days after</strong> the target date. Must <strong>not</strong> be performed earlier than the target.</p>',
+    source:'Std Protocol §3.2.7'
+  },
+  {
+    id:'num-round-window', deck:'numbers',
+    q:'Timing window: 24-month screening round scan.',
+    a:'<p><strong>± 56 days</strong> of the target date.</p>',
+    source:'Std Protocol §3.2.8'
+  },
+  {
+    id:'num-infection-defer', deck:'numbers',
+    q:'Respiratory infection at time of appointment — what to do?',
+    a:'<p><strong>Defer the scan by 6 weeks</strong> to avoid false-positive results.</p>',
+    source:'Std Protocol §3.6.3'
+  },
+  {
+    id:'num-dose', deck:'numbers',
+    q:'Radiation dose target for LDCT.',
+    a:'<p><strong>&lt; 2 mSv</strong>, based on the median standard 70 kg adult. kVp and mAs are varied according to participant body habitus.</p>',
+    source:'Std Protocol §4.3.1'
+  },
+  {
+    id:'num-slice', deck:'numbers',
+    q:'Required slice thickness for LCSP LDCT.',
+    a:'<p><strong>≤ 1.25 mm.</strong> Example: 1 mm slice with 0.7 mm increment.</p><p>Slice thickness and increment must remain the same regardless of scanner make/model.</p>',
+    source:'Std Protocol §4.4.2 & §5.2.4'
+  },
+  {
+    id:'num-scanner', deck:'numbers',
+    q:'Minimum CT scanner specification.',
+    a:'<p><strong>≥ 16-channel multi-detector CT</strong>, fixed site or mobile, calibrated and appropriately acceptance tested.</p>',
+    source:'Std Protocol §4.1.1'
+  },
+  {
+    id:'num-cad', deck:'numbers',
+    q:'CAD system requirement.',
+    a:'<p>CAD must be used in <strong>concurrent or second reader</strong> format. Required false-positive rate: <strong>&lt; 2 per case</strong>.</p>',
+    source:'Std Protocol §4.1.9'
+  },
+  {
+    id:'num-volume', deck:'numbers',
+    q:'Minimum annual thoracic CT volume for a screening radiologist.',
+    a:'<p><strong>≥ 500 thoracic CTs per annum</strong> in routine clinical practice — the majority evaluating lung cancer (mix of LCSP LDCTs, pulmonary nodule follow-up, symptomatic lung cancer).</p>',
+    source:'Std Protocol §4.6.1'
+  },
+  {
+    id:'num-reporting-rate', deck:'numbers',
+    q:'Expected reporting rate per programmed activity (PA).',
+    a:'<p><strong>12–20 scans per PA</strong>, with a view to achieving ≥ 20 as experience grows.</p>',
+    source:'Std Protocol §4.6.3'
+  },
+  {
+    id:'num-age', deck:'numbers',
+    q:'Eligibility age window for LHC invitation.',
+    a:'<p><strong>55 to 74 years and 364 days.</strong></p><p>Those invited can proceed even if the LHC takes place after they turn 75, but no LHC or baseline scan more than 3 months after turning 75.</p>',
+    source:'Std Protocol §3.1.1 & §3.1.2'
+  },
+  {
+    id:'num-thresholds', deck:'numbers',
+    q:'Risk thresholds for LDCT eligibility.',
+    a:'<p><strong>PLCO<sub>M2012</sub>:</strong> ≥ 1.51% over 6 years</p><p><strong>LLPv2:</strong> ≥ 2.5% over 5 years</p><p>Participants satisfying <em>either</em> model are eligible, provided they meet inclusion criteria and have no exclusion criteria.</p>',
+    source:'Std Protocol §3.3.4, §3.3.6'
+  },
+  {
+    id:'num-nodule-threshold', deck:'numbers',
+    q:'Lung nodule size threshold for characterisation at baseline.',
+    a:'<p><strong>≥ 5 mm or ≥ 80 mm³.</strong></p><p>Where multiple nodules are detected, report at least the two largest (including the largest overall). Where possible, all nodules &gt; 200 mm³ should be recorded.</p>',
+    source:'Std Protocol §4.6.4'
+  },
+  {
+    id:'num-new-threshold', deck:'numbers',
+    q:'Reporting threshold for new nodules on interval LDCT.',
+    a:'<p>New nodules <strong>≥ 30 mm³ or ≥ 4 mm</strong> max diameter that are not thought to be due to infection/inflammation should be reported (this determines the scan interval).</p>',
+    source:'Std Protocol §4.6.4'
+  },
+  {
+    id:'num-delayed-scan', deck:'numbers',
+    q:'A 3-month follow-up scan actually occurs at 7 months. What next?',
+    a:'<p>Use radiologic judgement to bring the participant <em>back in line with the original timeline</em>, while still allowing sufficient time for reliable stability/growth assessment.</p><p>Example: if stable at 7 months, don\'t scan at 10 months — choose the next sensible point (e.g. 13 months from baseline, still within 1 month of the intended 12-month follow-up). If in doubt, discuss at SRM.</p>',
+    source:'Std Protocol, Table 4 notes'
+  },
+  {
+    id:'num-oop-ct', deck:'numbers',
+    q:'Participant has had an out-of-programme thoracic CT between screening scans. Does this defer their next LCSP scan?',
+    a:'<p>Generally <strong>no</strong>, don\'t defer. Flag the OOP scan on the participant\'s record.</p><p>SRM can defer scans if clinically warranted. If a new nodule or finding appears on the planned LCSP scan since the last LDCT, review at SRM alongside the OOP CT.</p>',
+    source:'Std Protocol §3.3.11'
+  },
+  {
+    id:'num-urgent-symptoms', deck:'numbers',
+    q:'Which symptoms bypass standard LDCT and go directly to urgent contrast CT of neck/thorax/abdomen?',
+    a:'<ul><li>Persistent haemoptysis</li><li>Signs of SVCO (face/neck/arm swelling, raised non-pulsatile JVP)</li><li>Stridor</li><li>Signs of malignant cord compression (new back/shoulder pain, sensory/motor deficit, incontinence, gait abnormality)</li></ul>',
+    source:'Std Protocol §3.6.4'
+  },
+  {
+    id:'num-exclusions', deck:'numbers',
+    q:'Key exclusion criteria for LDCT, even if risk threshold met.',
+    a:'<ul><li>Weight/physical size exceeds scanner restrictions (e.g. &gt; 200 kg)</li><li>Unable to lie flat</li><li>Poor fitness: curative treatment contraindicated (palliative care register, severe frailty, most metastatic cancers, mesothelioma)</li><li>Currently under active lung cancer treatment or post-treatment surveillance</li></ul>',
+    source:'Std Protocol §3.3.8'
+  },
+  {
+    id:'num-recent-ct', deck:'numbers',
+    q:'Participant had a full thoracic CT 8 months ago that meets programme reconstruction parameters. Action?',
+    a:'<p>Do <strong>not</strong> exclude — but defer the LDCT appointment until <strong>12 months</strong> have elapsed since that scan, provided inclusion/exclusion criteria are still met.</p>',
+    source:'Std Protocol §3.3.9'
+  }
+];
+
+/* --- Flashcard state & render --- */
+const FC_STORAGE_KEY = 'lcsp-fc-known';
+let fcKnown = {};
+try { fcKnown = JSON.parse(localStorage.getItem(FC_STORAGE_KEY) || '{}'); } catch(e){ fcKnown = {}; }
+function fcSaveKnown(){
+  try { localStorage.setItem(FC_STORAGE_KEY, JSON.stringify(fcKnown)); } catch(e){}
+}
+
+let fcDeckFilter = 'all';
+let fcDeck = [];
+let fcIdx = 0;
+let fcFlipped = false;
+
+const fcStage = document.getElementById('fc-stage');
+
+function fcBuildDeck(){
+  let base;
+  if(fcDeckFilter === 'known'){
+    base = FLASHCARDS.filter(c => fcKnown[c.id]);
+  } else if(fcDeckFilter === 'all'){
+    base = FLASHCARDS.slice();
+  } else {
+    base = FLASHCARDS.filter(c => c.deck === fcDeckFilter);
+  }
+  fcDeck = base;
+  fcIdx = 0;
+  fcFlipped = false;
+  fcRender();
+}
+
+function fcDeckLabel(d){
+  return {
+    'baseline-nodule':'Baseline nodules',
+    'incident-nodule':'Incident round',
+    'subsolid':'Sub-solid',
+    'vdt':'VDT & risk',
+    'incidental':'Incidentals',
+    'numbers':'Key numbers'
+  }[d] || d;
+}
+
+function fcRender(){
+  const counter = document.getElementById('fc-counter');
+  if(!fcDeck.length){
+    counter.textContent = '0 / 0';
+    fcStage.innerHTML = `
+      <div class="fc-empty">
+        <h3>${fcDeckFilter === 'known' ? 'No cards marked yet' : 'No cards in this deck'}</h3>
+        <p>${fcDeckFilter === 'known' ? 'Tap "Mark as known" on cards you feel confident about. They\'ll appear here for review.' : 'Pick another deck above.'}</p>
+      </div>`;
+    document.getElementById('fc-prev').disabled = true;
+    document.getElementById('fc-next').disabled = true;
+    document.getElementById('fc-mark').disabled = true;
+    return;
+  }
+  document.getElementById('fc-prev').disabled = false;
+  document.getElementById('fc-next').disabled = false;
+  document.getElementById('fc-mark').disabled = false;
+
+  const c = fcDeck[fcIdx];
+  const isKnown = !!fcKnown[c.id];
+  counter.textContent = `${fcIdx+1} / ${fcDeck.length}`;
+
+  fcStage.innerHTML = `
+    <div class="fc-card ${fcFlipped?'flipped':''} ${isKnown?'marked':''}" id="fc-card">
+      <div class="fc-card-inner">
+        <div class="fc-face fc-face-front">
+          <div class="fc-deck-tag"><span>${fcDeckLabel(c.deck)}</span></div>
+          <div class="fc-q">${c.q}</div>
+          <div class="fc-flip-hint">Tap to reveal</div>
+        </div>
+        <div class="fc-face fc-face-back">
+          <div class="fc-a-label">Answer</div>
+          <div class="fc-a">${c.a}</div>
+          <div class="fc-source">${c.source}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('fc-card').addEventListener('click', ()=>{
+    fcFlipped = !fcFlipped;
+    document.getElementById('fc-card').classList.toggle('flipped', fcFlipped);
+  });
+
+  // Update the mark button label
+  const markBtn = document.getElementById('fc-mark');
+  markBtn.textContent = isKnown ? '✓ Learned — unmark' : 'Mark as known ✓';
+}
+
+function fcNext(){
+  if(!fcDeck.length) return;
+  fcIdx = (fcIdx + 1) % fcDeck.length;
+  fcFlipped = false;
+  fcRender();
+}
+function fcPrev(){
+  if(!fcDeck.length) return;
+  fcIdx = (fcIdx - 1 + fcDeck.length) % fcDeck.length;
+  fcFlipped = false;
+  fcRender();
+}
+function fcToggleKnown(){
+  if(!fcDeck.length) return;
+  const c = fcDeck[fcIdx];
+  if(fcKnown[c.id]) delete fcKnown[c.id];
+  else fcKnown[c.id] = true;
+  fcSaveKnown();
+  fcRender();
+}
+
+document.getElementById('fc-next').addEventListener('click', fcNext);
+document.getElementById('fc-prev').addEventListener('click', fcPrev);
+document.getElementById('fc-mark').addEventListener('click', fcToggleKnown);
+document.getElementById('fc-shuffle').addEventListener('click', ()=>{
+  // Fisher-Yates shuffle
+  for(let i = fcDeck.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [fcDeck[i], fcDeck[j]] = [fcDeck[j], fcDeck[i]];
+  }
+  fcIdx = 0;
+  fcFlipped = false;
+  fcRender();
+});
+document.getElementById('fc-reset').addEventListener('click', ()=>{
+  if(!confirm('Reset all "known" marks?')) return;
+  fcKnown = {};
+  fcSaveKnown();
+  fcRender();
+});
+
+document.querySelectorAll('#fc-filters button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    document.querySelectorAll('#fc-filters button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    fcDeckFilter = b.dataset.deck;
+    fcBuildDeck();
+  });
+});
+
+// Keyboard nav (desktop only — safe on mobile as it's inert)
+document.addEventListener('keydown', (e)=>{
+  const flashActive = document.getElementById('flashcards').classList.contains('active');
+  if(!flashActive) return;
+  if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  if(e.key === 'ArrowRight') { e.preventDefault(); fcNext(); }
+  else if(e.key === 'ArrowLeft') { e.preventDefault(); fcPrev(); }
+  else if(e.key === ' ') {
+    e.preventDefault();
+    fcFlipped = !fcFlipped;
+    const card = document.getElementById('fc-card');
+    if(card) card.classList.toggle('flipped', fcFlipped);
+  }
+});
+
+fcBuildDeck();
+
+</script>
+</body>
+</html>
